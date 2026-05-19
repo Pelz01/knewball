@@ -26,8 +26,13 @@ export function LiveTicker() {
               </span>
             ))}
           </div>
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-background to-transparent" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-background to-transparent" />
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "linear-gradient(to right, var(--background) 0, transparent 8%, transparent 92%, var(--background) 100%)",
+            }}
+          />
         </div>
       </div>
     </div>

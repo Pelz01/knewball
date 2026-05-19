@@ -79,7 +79,7 @@ export function Leaderboard() {
                 </div>
                 <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-background">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-primary to-gold"
+                    className="h-full rounded-full bg-primary"
                     style={{ width: `${pct}%` }}
                   />
                 </div>

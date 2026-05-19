@@ -1,6 +1,6 @@
 export function ProofCard() {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-surface to-background p-6 md:p-10">
+    <div className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 md:p-10">
       <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-40" />
       <div className="relative grid gap-10 md:grid-cols-[1fr_1.1fr] md:items-center">
         <div>

@@ -38,7 +38,7 @@ export function FeaturedMatch({ match }: { match: Match }) {
         height={1280}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30"
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/40" />
+      <div className="pointer-events-none absolute inset-0 bg-background/70" />
       <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-50" />
 
       <div className="relative grid gap-10 p-6 md:grid-cols-[1.2fr_1fr] md:gap-12 md:p-10">
