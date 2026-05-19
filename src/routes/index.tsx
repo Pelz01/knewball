@@ -14,7 +14,7 @@ export const Route = createFileRoute("/")({
 function Index() {
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Nav />
+      <Nav variant="marketing" />
       <Hero />
 
       <main className="mx-auto max-w-7xl space-y-24 px-6 py-20 md:py-28">
