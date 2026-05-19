@@ -104,6 +104,28 @@ export const MATCHES: Match[] = [
     score: { home: 2, away: 1 },
     callsLocked: 14207,
   },
+  {
+    id: "m-007",
+    group: "Group G — Matchday 1",
+    home: TEAMS.MAR,
+    away: TEAMS.ESP,
+    kickoff: "2026-06-16T19:00:00Z",
+    venue: "Soldier Field, Chicago",
+    status: "final",
+    score: { home: 1, away: 0 },
+    callsLocked: 9821,
+  },
+  {
+    id: "m-008",
+    group: "Group H — Matchday 1",
+    home: TEAMS.GER,
+    away: TEAMS.KOR,
+    kickoff: "2026-06-16T22:00:00Z",
+    venue: "AT&T Stadium, Dallas",
+    status: "final",
+    score: { home: 3, away: 1 },
+    callsLocked: 12044,
+  },
 ];
 
 export interface FanRank {
