@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Logo, Wordmark } from "./Logo";
 
 const links = [
   { to: "/matches", label: "Matches" },
@@ -11,14 +12,8 @@ export function Nav() {
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <Link to="/" className="group flex items-center gap-2.5">
-          <span className="relative flex h-7 w-7 items-center justify-center">
-            <span className="absolute inset-0 rounded-full border border-primary/60" />
-            <span className="absolute inset-[5px] rounded-full bg-primary" />
-            <span className="absolute -inset-1 rounded-full bg-primary/20 blur-md opacity-0 transition group-hover:opacity-100" />
-          </span>
-          <span className="font-display text-2xl tracking-[0.06em]">
-            KNEW<span className="text-primary">BALL</span>
-          </span>
+          <Logo size={28} className="text-foreground transition group-hover:text-primary" />
+          <Wordmark className="font-display text-lg tracking-tight" />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
