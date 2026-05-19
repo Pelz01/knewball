@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Logo, Wordmark } from "./Logo";
 
 export function Footer() {
   return (
@@ -7,13 +8,8 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div>
             <div className="flex items-center gap-2.5">
-              <span className="relative flex h-7 w-7 items-center justify-center">
-                <span className="absolute inset-0 rounded-full border border-primary/60" />
-                <span className="absolute inset-[5px] rounded-full bg-primary" />
-              </span>
-              <span className="font-display text-2xl tracking-[0.06em]">
-                KNEW<span className="text-primary">BALL</span>
-              </span>
+              <Logo size={28} className="text-foreground" />
+              <Wordmark className="font-display text-lg tracking-tight" />
             </div>
             <p className="mt-4 max-w-sm text-sm text-muted-foreground">
               An onchain World Cup prediction streak game. Built for fans who want to prove

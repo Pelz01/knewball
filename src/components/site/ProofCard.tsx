@@ -1,13 +1,13 @@
 export function ProofCard() {
   return (
-    <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-surface to-background p-6 md:p-10">
+    <div className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 md:p-10">
       <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-40" />
       <div className="relative grid gap-10 md:grid-cols-[1fr_1.1fr] md:items-center">
         <div>
           <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
             04 / Share
           </span>
-          <h2 className="mt-2 font-display text-4xl leading-[0.95] tracking-wide md:text-6xl">
+          <h2 className="mt-2 font-display text-4xl leading-[0.95] tracking-tight md:text-6xl">
             One screenshot.
             <br />
             <span className="text-gold">Whole timeline silent.</span>
@@ -38,12 +38,12 @@ export function ProofCard() {
               <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                 <div className="text-right">
                   <div aria-hidden className="text-3xl">🇲🇦</div>
-                  <div className="font-display text-2xl tracking-wide">Morocco</div>
+                  <div className="font-display text-2xl tracking-tight">Morocco</div>
                 </div>
                 <div className="font-display text-3xl text-gold">2 — 1</div>
                 <div>
                   <div aria-hidden className="text-3xl">🇵🇹</div>
-                  <div className="font-display text-2xl tracking-wide">Portugal</div>
+                  <div className="font-display text-2xl tracking-tight">Portugal</div>
                 </div>
               </div>
               <p className="mt-6 text-center text-sm text-foreground">
@@ -63,7 +63,7 @@ export function ProofCard() {
                     {k}
                   </div>
                   <div
-                    className={`mt-1 font-display text-xl tracking-wide ${
+                    className={`mt-1 font-display text-xl tracking-tight ${
                       c === "gold" ? "text-gold" : "text-foreground"
                     }`}
                   >

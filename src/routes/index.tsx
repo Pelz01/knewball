@@ -32,7 +32,7 @@ function Index() {
               <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
                 01 / Today's call
               </span>
-              <h2 className="mt-2 font-display text-4xl tracking-wide md:text-5xl">
+              <h2 className="mt-2 font-display text-4xl tracking-tight md:text-5xl">
                 The headline match
               </h2>
             </div>
@@ -66,7 +66,7 @@ function Index() {
               <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
                 05 / Reputation
               </span>
-              <h2 className="mt-2 font-display text-4xl tracking-wide md:text-5xl">
+              <h2 className="mt-2 font-display text-4xl tracking-tight md:text-5xl">
                 Who actually knows ball
               </h2>
             </div>
@@ -91,7 +91,7 @@ function Index() {
             <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
               The final word
             </span>
-            <h2 className="mx-auto mt-3 max-w-4xl font-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.9] tracking-wide">
+            <h2 className="mx-auto mt-3 max-w-4xl font-display text-[clamp(2.5rem,7vw,6rem)] leading-[0.9] tracking-tight">
               You either know ball,
               <br />
               <span className="text-primary text-glow-green">or you do not.</span>

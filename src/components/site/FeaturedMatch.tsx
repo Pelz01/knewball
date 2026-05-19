@@ -38,7 +38,7 @@ export function FeaturedMatch({ match }: { match: Match }) {
         height={1280}
         className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30"
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-background via-background/85 to-background/40" />
+      <div className="pointer-events-none absolute inset-0 bg-background/70" />
       <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-50" />
 
       <div className="relative grid gap-10 p-6 md:grid-cols-[1.2fr_1fr] md:gap-12 md:p-10">
@@ -58,7 +58,7 @@ export function FeaturedMatch({ match }: { match: Match }) {
               <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
                 {match.home.code}
               </div>
-              <div className="font-display text-4xl leading-[0.95] tracking-wide md:text-5xl">
+              <div className="font-display text-4xl leading-[0.95] tracking-tight md:text-5xl">
                 {match.home.name}
               </div>
             </div>
@@ -70,7 +70,7 @@ export function FeaturedMatch({ match }: { match: Match }) {
               <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
                 {match.away.code}
               </div>
-              <div className="font-display text-4xl leading-[0.95] tracking-wide md:text-5xl">
+              <div className="font-display text-4xl leading-[0.95] tracking-tight md:text-5xl">
                 {match.away.name}
               </div>
             </div>
@@ -93,7 +93,7 @@ export function FeaturedMatch({ match }: { match: Match }) {
                 ["Sec", pad(c.s)],
               ].map(([label, v]) => (
                 <div key={label} className="rounded-xl border border-border bg-surface px-2 py-3">
-                  <div className="font-display text-3xl tracking-wider tabular-nums md:text-4xl">
+                  <div className="font-display text-3xl tracking-tightr tabular-nums md:text-4xl">
                     {v}
                   </div>
                   <div className="font-mono text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
@@ -113,7 +113,7 @@ export function FeaturedMatch({ match }: { match: Match }) {
 
         <aside className="relative flex flex-col rounded-2xl border border-border bg-background/80 p-5 backdrop-blur-sm">
           <div className="flex items-center justify-between border-b border-hairline pb-3">
-            <span className="font-display text-xl tracking-wide">Your call sheet</span>
+            <span className="font-display text-xl tracking-tight">Your call sheet</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
               Draft · unlocked
             </span>

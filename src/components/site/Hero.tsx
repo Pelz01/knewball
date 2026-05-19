@@ -1,5 +1,5 @@
-import heroImg from "@/assets/hero-stadium.jpg";
 import { Link } from "@tanstack/react-router";
+import heroImg from "@/assets/hero-stadium.jpg";
 
 export function Hero() {
   return (
@@ -9,10 +9,15 @@ export function Hero() {
         alt=""
         width={1920}
         height={1080}
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-55"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-30"
+        style={{
+          maskImage:
+            "radial-gradient(120% 80% at 70% 30%, #000 35%, transparent 80%)",
+          WebkitMaskImage:
+            "radial-gradient(120% 80% at 70% 30%, #000 35%, transparent 80%)",
+        }}
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/40 via-background/70 to-background" />
-      <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-60" />
+      <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-50" />
       <div className="pointer-events-none absolute inset-0 bg-scanline" />
 
       <div className="relative mx-auto max-w-7xl px-6 pt-20 pb-24 md:pt-28 md:pb-32">
@@ -26,14 +31,14 @@ export function Hero() {
             </span>
           </div>
 
-          <h1 className="font-display text-[clamp(3.4rem,11vw,9.5rem)] leading-[0.86] tracking-[0.005em]">
-            <span className="block">PROVE YOU</span>
+          <h1 className="font-display text-[clamp(2.4rem,7vw,6rem)] leading-[0.92] tracking-tight">
+            <span className="block">Prove you</span>
             <span className="block">
-              <span className="text-primary text-glow-green">KNEW</span>
+              <span className="text-primary text-glow-green">knew</span>
               <span className="text-muted-foreground/40"> · </span>
-              BALL
+              ball
             </span>
-            <span className="block text-muted-foreground/70">BEFORE KICKOFF.</span>
+            <span className="block text-muted-foreground/70">before kickoff.</span>
           </h1>
 
           <p className="max-w-xl text-base text-muted-foreground md:text-lg">
@@ -85,7 +90,7 @@ function Stat({
         {label}
       </div>
       <div
-        className={`mt-2 font-display text-3xl tracking-wide md:text-4xl ${
+        className={`mt-2 font-display text-3xl tracking-tight md:text-4xl ${
           accent === "gold" ? "text-gold" : "text-foreground"
         }`}
       >

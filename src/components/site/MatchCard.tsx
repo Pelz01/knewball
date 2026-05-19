@@ -87,7 +87,7 @@ function TeamSide({
         <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
           {team.code}
         </div>
-        <div className="font-display text-2xl leading-none tracking-wide">{team.name}</div>
+        <div className="font-display text-2xl leading-none tracking-tight">{team.name}</div>
       </div>
       {typeof score === "number" && (
         <div

@@ -24,7 +24,7 @@ export function Badges() {
           <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
             03 / Reputation
           </span>
-          <h2 className="mt-2 font-display text-4xl tracking-wide md:text-5xl">
+          <h2 className="mt-2 font-display text-4xl tracking-tight md:text-5xl">
             Badges that prove it
           </h2>
         </div>
@@ -52,7 +52,7 @@ export function Badges() {
                 {b.rarity}
               </span>
             </div>
-            <h3 className="mt-5 font-display text-2xl tracking-wide">{b.name}</h3>
+            <h3 className="mt-5 font-display text-2xl tracking-tight">{b.name}</h3>
             <p className="mt-1 text-sm text-muted-foreground">{b.description}</p>
           </article>
         ))}
