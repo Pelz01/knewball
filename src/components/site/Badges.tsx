@@ -2,18 +2,18 @@ import { BADGES } from "@/lib/match-data";
 
 const rarityRing: Record<string, string> = {
   common: "border-border",
-  rare: "border-broadcast/60",
-  legendary: "border-gold/70",
+  rare: "border-foreground/30",
+  legendary: "border-primary/60",
 };
 const rarityGlow: Record<string, string> = {
   common: "",
-  rare: "shadow-[0_0_40px_-12px_rgba(37,99,235,0.5)]",
-  legendary: "shadow-[0_0_50px_-10px_rgba(245,184,59,0.55)]",
+  rare: "",
+  legendary: "shadow-[0_0_50px_-12px_rgba(25,227,111,0.45)]",
 };
 const rarityText: Record<string, string> = {
   common: "text-muted-foreground",
-  rare: "text-broadcast",
-  legendary: "text-gold",
+  rare: "text-foreground",
+  legendary: "text-primary",
 };
 
 export function Badges() {

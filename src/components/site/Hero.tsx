@@ -20,8 +20,8 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-50" />
       <div className="pointer-events-none absolute inset-0 bg-scanline" />
 
-      <div className="relative mx-auto max-w-7xl px-6 pt-20 pb-24 md:pt-28 md:pb-32">
-        <div className="flex flex-col items-start gap-8 md:gap-10">
+      <div className="relative mx-auto max-w-7xl px-6 pt-10 pb-20 md:pt-14 md:pb-28">
+        <div className="flex flex-col items-start gap-6 md:gap-8">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
               World Cup · Season 01
