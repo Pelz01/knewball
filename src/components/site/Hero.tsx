@@ -85,7 +85,7 @@ function Stat({
         {label}
       </div>
       <div
-        className={`mt-2 font-display text-3xl tracking-wide md:text-4xl ${
+        className={`mt-2 font-display text-3xl tracking-tight md:text-4xl ${
           accent === "gold" ? "text-gold" : "text-foreground"
         }`}
       >

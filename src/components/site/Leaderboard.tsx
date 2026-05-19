@@ -6,7 +6,7 @@ export function Leaderboard() {
       <div className="overflow-hidden rounded-2xl border border-border bg-surface">
         <header className="flex items-center justify-between border-b border-hairline px-5 py-4">
           <div>
-            <h3 className="font-display text-2xl tracking-wide">Global Ball IQ — top fans</h3>
+            <h3 className="font-display text-2xl tracking-tight">Global Ball IQ — top fans</h3>
             <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
               Season 01 · live ranking
             </p>
@@ -47,7 +47,7 @@ export function Leaderboard() {
               <span className="text-right font-mono text-sm tabular-nums text-muted-foreground">
                 {f.accuracy}%
               </span>
-              <span className="text-right font-display text-xl tracking-wide tabular-nums">
+              <span className="text-right font-display text-xl tracking-tight tabular-nums">
                 {f.ballIq.toLocaleString()}
               </span>
             </li>
@@ -57,7 +57,7 @@ export function Leaderboard() {
 
       <div className="overflow-hidden rounded-2xl border border-border bg-surface">
         <header className="border-b border-hairline px-5 py-4">
-          <h3 className="font-display text-2xl tracking-wide">Country rankings</h3>
+          <h3 className="font-display text-2xl tracking-tight">Country rankings</h3>
           <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
             Average Ball IQ per country
           </p>
@@ -72,7 +72,7 @@ export function Leaderboard() {
                     {String(c.rank).padStart(2, "0")}
                   </span>
                   <span aria-hidden className="text-xl">{c.country.flag}</span>
-                  <span className="font-display text-xl tracking-wide">{c.country.name}</span>
+                  <span className="font-display text-xl tracking-tight">{c.country.name}</span>
                   <span className="ml-auto font-display text-xl text-gold tabular-nums">
                     {c.avgIq.toLocaleString()}
                   </span>

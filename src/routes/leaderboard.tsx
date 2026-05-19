@@ -16,7 +16,7 @@ function LeaderboardPage() {
           <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
             Season 01 · Live
           </span>
-          <h1 className="mt-2 font-display text-5xl leading-[0.95] tracking-wide md:text-7xl">
+          <h1 className="mt-2 font-display text-5xl leading-[0.95] tracking-tight md:text-7xl">
             The table doesn't lie.
           </h1>
           <p className="mt-4 text-muted-foreground md:text-lg">

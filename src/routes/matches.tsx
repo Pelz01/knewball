@@ -23,7 +23,7 @@ function MatchesPage() {
           <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
             Matchboard
           </span>
-          <h1 className="mt-2 font-display text-5xl leading-[0.95] tracking-wide md:text-7xl">
+          <h1 className="mt-2 font-display text-5xl leading-[0.95] tracking-tight md:text-7xl">
             Every kickoff. Every call.
           </h1>
           <p className="mt-4 text-muted-foreground md:text-lg">
@@ -76,7 +76,7 @@ function Section({
   return (
     <section className="mb-16">
       <div className="mb-6 flex items-baseline justify-between border-b border-hairline pb-3">
-        <h2 className="font-display text-3xl tracking-wide md:text-4xl">{title}</h2>
+        <h2 className="font-display text-3xl tracking-tight md:text-4xl">{title}</h2>
         <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
           {caption}
         </span>
