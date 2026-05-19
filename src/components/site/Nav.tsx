@@ -1,13 +1,20 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
+import { useState } from "react";
 import { Logo, Wordmark } from "./Logo";
+import { OnboardingModal } from "./OnboardingModal";
+import { useStore, shortAddress } from "@/lib/store";
 
-const links = [
-  { to: "/how-it-works", label: "How it works" },
+const appLinks = [
+  { to: "/matches", label: "Matches" },
   { to: "/leaderboard", label: "Leaderboard" },
-  { to: "/vault", label: "Collectibles" },
+  { to: "/how-it-works", label: "How it works" },
 ] as const;
 
-export function Nav() {
+export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
+  const { wallet, profile, totalBallIq, disconnect } = useStore();
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
@@ -16,36 +23,85 @@ export function Nav() {
           <Wordmark className="font-display text-lg tracking-tight" />
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
-          {links.map((l) => (
-            <Link
-              key={l.to}
-              to={l.to}
-              className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-surface-elevated hover:text-foreground"
-              activeProps={{ className: "bg-surface-elevated text-foreground" }}
-            >
-              {l.label}
-            </Link>
-          ))}
-        </nav>
+        {variant === "app" && (
+          <nav className="hidden items-center gap-1 md:flex">
+            {appLinks.map((l) => (
+              <Link
+                key={l.to}
+                to={l.to}
+                className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-surface-elevated hover:text-foreground"
+                activeProps={{ className: "bg-surface-elevated text-foreground" }}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+        )}
 
         <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="hidden items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition hover:bg-surface-elevated sm:inline-flex"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            Connect wallet
-          </button>
-          <Link
-            to="/matches"
-            className="group inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
-          >
-            Launch app
-            <span aria-hidden className="text-base leading-none transition group-hover:translate-x-0.5">→</span>
-          </Link>
+          {variant === "marketing" ? (
+            <>
+              <Link
+                to="/leaderboard"
+                className="hidden rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition hover:bg-surface-elevated sm:inline-flex"
+              >
+                Leaderboard
+              </Link>
+              <Link
+                to="/matches"
+                className="group inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+              >
+                Launch app
+                <span aria-hidden className="text-base leading-none transition group-hover:translate-x-0.5">→</span>
+              </Link>
+            </>
+          ) : wallet && profile ? (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/profile/$wallet"
+                params={{ wallet }}
+                className="flex items-center gap-3 rounded-full border border-border bg-surface px-3 py-1.5 text-sm transition hover:bg-surface-elevated"
+              >
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs">⚽</span>
+                <span className="hidden flex-col leading-tight sm:flex">
+                  <span className="font-medium text-foreground">{profile.displayName}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
+                    {totalBallIq.toLocaleString()} IQ
+                  </span>
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:hidden">
+                  {shortAddress(wallet)}
+                </span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => { disconnect(); router.navigate({ to: "/" }); }}
+                className="hidden rounded-full border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground md:inline-flex"
+              >
+                Sign out
+              </button>
+            </div>
+          ) : wallet ? (
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/15"
+            >
+              Create profile
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-primary-foreground/60" />
+              Connect wallet
+            </button>
+          )}
         </div>
       </div>
+      <OnboardingModal open={open} onClose={() => setOpen(false)} />
     </header>
   );
 }

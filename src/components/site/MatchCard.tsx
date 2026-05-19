@@ -1,5 +1,6 @@
 import type { Match } from "@/lib/match-data";
 import { Link } from "@tanstack/react-router";
+import { useStore } from "@/lib/store";
 
 function formatKickoff(iso: string) {
   const d = new Date(iso);
@@ -37,6 +38,24 @@ export function MatchCard({ match }: { match: Match }) {
   const isLive = match.status === "live";
   const isFinal = match.status === "final";
   const split = fanSplit(match.id);
+  const { getPrediction, getDraft, getResult } = useStore();
+  const pred = getPrediction(match.id);
+  const draft = getDraft(match.id);
+  const result = getResult(match.id);
+  const canClaim = !!pred && !!result && !pred.claimed;
+
+  const ctaLabel = canClaim
+    ? "Claim Ball IQ"
+    : pred?.claimed
+      ? "View proof"
+      : pred
+        ? isLive ? "View arena" : "View locked call"
+        : draft
+          ? "Continue call"
+          : isFinal
+            ? "View arena"
+            : isLive ? "Late call" : "Make call";
+  const ctaPrimary = canClaim || !pred;
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-surface transition hover:border-primary/40 hover:bg-surface-elevated">
@@ -97,20 +116,18 @@ export function MatchCard({ match }: { match: Match }) {
         <span className="truncate px-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
           {match.venue.split(",")[0]}
         </span>
-        {isFinal ? (
-          <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-surface-elevated px-4 py-2 text-xs font-semibold text-muted-foreground">
-            Closed
-          </span>
-        ) : (
-          <Link
-            to="/matches/$matchId"
-            params={{ matchId: match.id }}
-            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:brightness-110"
-          >
-            {isLive ? "Late call" : "Make call"}
-            <span aria-hidden>→</span>
-          </Link>
-        )}
+        <Link
+          to="/matches/$matchId"
+          params={{ matchId: match.id }}
+          className={`ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition ${
+            ctaPrimary
+              ? "bg-primary text-primary-foreground hover:brightness-110"
+              : "border border-border bg-background text-foreground hover:bg-surface-elevated"
+          }`}
+        >
+          {ctaLabel}
+          <span aria-hidden>→</span>
+        </Link>
       </div>
     </article>
   );
