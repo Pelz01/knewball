@@ -1,5 +1,6 @@
 import { Outlet, Link, createRootRouteWithContext, useRouter } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
+import { StoreProvider } from "@/lib/store";
 
 function NotFoundComponent() {
   return (
@@ -56,7 +57,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  component: () => <Outlet />,
+  component: () => (
+    <StoreProvider>
+      <Outlet />
+    </StoreProvider>
+  ),
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
