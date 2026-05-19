@@ -57,9 +57,9 @@ export function Leaderboard() {
 
       <div className="overflow-hidden rounded-2xl border border-border bg-surface">
         <header className="border-b border-hairline px-5 py-4">
-          <h3 className="font-display text-2xl tracking-tight">Country rankings</h3>
+          <h3 className="font-display text-2xl tracking-tight">Country Form</h3>
           <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-            Average Ball IQ per country
+            Ball IQ per active fan · fair across nation size
           </p>
         </header>
         <ul className="divide-y divide-hairline">
