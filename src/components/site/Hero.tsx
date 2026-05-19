@@ -52,15 +52,16 @@ export function Hero() {
               to="/matches"
               className="group inline-flex items-center gap-2.5 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
             >
-              Make today's call
+              Launch app
               <span aria-hidden className="text-base transition group-hover:translate-x-0.5">→</span>
             </Link>
-            <Link
-              to="/how-it-works"
+            <button
+              type="button"
               className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-6 py-3.5 text-sm font-semibold text-foreground transition hover:bg-surface-elevated"
             >
-              How it works
-            </Link>
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              Connect wallet
+            </button>
           </div>
 
           <dl className="mt-6 grid w-full grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:max-w-3xl md:grid-cols-4">
