@@ -2,11 +2,9 @@ import { Link } from "@tanstack/react-router";
 import { Logo, Wordmark } from "./Logo";
 
 const links = [
-  { to: "/matches", label: "Matches" },
-  { to: "/leaderboard", label: "Leaderboard" },
-  { to: "/vault", label: "Vault" },
-  { to: "/profile", label: "Profile" },
   { to: "/how-it-works", label: "How it works" },
+  { to: "/leaderboard", label: "Leaderboard" },
+  { to: "/vault", label: "Collectibles" },
 ] as const;
 
 export function Nav() {
@@ -32,17 +30,20 @@ export function Nav() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <span className="hidden items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-[11px] font-medium uppercase tracking-[0.16em] text-muted-foreground sm:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            X Layer
-          </span>
           <button
             type="button"
-            className="group relative inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+            className="hidden items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition hover:bg-surface-elevated sm:inline-flex"
           >
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
             Connect wallet
-            <span aria-hidden className="text-base leading-none">→</span>
           </button>
+          <Link
+            to="/matches"
+            className="group inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+          >
+            Launch app
+            <span aria-hidden className="text-base leading-none transition group-hover:translate-x-0.5">→</span>
+          </Link>
         </div>
       </div>
     </header>

@@ -1,59 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Nav } from "@/components/site/Nav";
-import { LiveTicker } from "@/components/site/LiveTicker";
 import { Hero } from "@/components/site/Hero";
-import { MatchCard } from "@/components/site/MatchCard";
-import { FeaturedMatch } from "@/components/site/FeaturedMatch";
 import { Leaderboard } from "@/components/site/Leaderboard";
 import { HowItWorks } from "@/components/site/HowItWorks";
 import { Badges } from "@/components/site/Badges";
 import { ProofCard } from "@/components/site/ProofCard";
 import { Footer } from "@/components/site/Footer";
-import { MATCHES } from "@/lib/match-data";
 
 export const Route = createFileRoute("/")({
   component: Index,
 });
 
 function Index() {
-  const featured = MATCHES.find((m) => m.id === "m-001")!;
-  const matchGrid = MATCHES.filter((m) => m.id !== "m-001");
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
       <Hero />
-      <LiveTicker />
 
       <main className="mx-auto max-w-7xl space-y-24 px-6 py-20 md:py-28">
         <section>
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
-                01 / Today's call
-              </span>
-              <h2 className="mt-2 font-display text-4xl tracking-tight md:text-5xl">
-                The headline match
-              </h2>
-            </div>
-            <Link
-              to="/matches"
-              className="rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground transition hover:bg-surface-elevated"
-            >
-              All matches →
-            </Link>
-          </div>
-          <FeaturedMatch match={featured} />
-
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {matchGrid.map((m) => (
-              <MatchCard key={m.id} match={m} />
-            ))}
-          </div>
+          <HowItWorks />
         </section>
 
         <section>
-          <HowItWorks />
+          <Pillars />
         </section>
 
         <section>
@@ -97,28 +67,86 @@ function Index() {
               <span className="text-primary text-glow-green">or you do not.</span>
             </h2>
             <p className="mx-auto mt-5 max-w-md text-sm text-muted-foreground md:text-base">
-              KnewBall gives fans a way to prove it. Lock your first call before the next
-              kickoff.
+              KnewBall gives fans a way to prove it. Launch the app and lock your first call
+              before the next kickoff.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 to="/matches"
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
               >
-                Make today's call →
+                Launch app →
               </Link>
-              <Link
-                to="/leaderboard"
+              <button
+                type="button"
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-7 py-3.5 text-sm font-semibold text-foreground transition hover:bg-surface-elevated"
               >
-                See the table
-              </Link>
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                Connect wallet
+              </button>
             </div>
           </div>
         </section>
       </main>
 
       <Footer />
+    </div>
+  );
+}
+
+const PILLARS = [
+  {
+    n: "01",
+    title: "Reputation, not betting",
+    body: "No odds, no pools, no risk of capital. Your record is your reputation. Wrong calls cost streak, not money.",
+  },
+  {
+    n: "02",
+    title: "Proof at kickoff",
+    body: "Every call is signed and written to X Layer the moment the whistle blows. No silent edits. No revisionist history.",
+  },
+  {
+    n: "03",
+    title: "Country vs country",
+    body: "Your Ball IQ feeds your nation's score. Argentina vs Brazil isn't just on the pitch — it's on the leaderboard.",
+  },
+  {
+    n: "04",
+    title: "Collect the moments",
+    body: "Call the upset, mint the badge. Soulbound collectibles for the calls only real fans would make.",
+  },
+];
+
+function Pillars() {
+  return (
+    <div>
+      <div className="mb-10 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
+            03 / What you get
+          </span>
+          <h2 className="mt-2 font-display text-4xl tracking-tight md:text-5xl">
+            Built for fans, not bettors.
+          </h2>
+        </div>
+        <p className="max-w-md text-sm text-muted-foreground">
+          KnewBall takes football's loudest opinions and gives them an onchain record.
+        </p>
+      </div>
+      <div className="grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-2">
+        {PILLARS.map((p) => (
+          <div key={p.n} className="bg-surface p-8 transition hover:bg-surface-elevated">
+            <div className="flex items-baseline justify-between">
+              <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
+                {p.n}
+              </span>
+              <span aria-hidden className="text-muted-foreground/40">+</span>
+            </div>
+            <h3 className="mt-5 font-display text-2xl tracking-tight md:text-3xl">{p.title}</h3>
+            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
