@@ -70,20 +70,19 @@ function Index() {
               KnewBall gives fans a way to prove it. Launch the app and lock your first call
               before the next kickoff.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Link
                 to="/matches"
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
               >
-                Launch app →
+                Start predicting →
               </Link>
-              <button
-                type="button"
+              <Link
+                to="/leaderboard"
                 className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-7 py-3.5 text-sm font-semibold text-foreground transition hover:bg-surface-elevated"
               >
-                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                Connect wallet
-              </button>
+                View leaderboard
+              </Link>
             </div>
           </div>
         </section>
