@@ -91,10 +91,13 @@
   --primary: #19e36f;            /* electric pitch green */
   --primary-foreground: #07090c;
 
-  --gold: #f5b83b;               /* trophy gold — Ball IQ */
+  /* Warm bone — used for rare/legendary accents; replaces the
+   * old saturated trophy gold so it pairs cleanly with the green. */
+  --gold: #e8dfc8;
   --gold-foreground: #07090c;
 
-  --broadcast: #2563eb;          /* proof links, live status */
+  /* Neutral steel — replaces the old broadcast blue. */
+  --broadcast: #c5cbd4;
   --pitch: #19e36f;
   --red-card: #ef4444;
 
@@ -102,7 +105,7 @@
   --secondary-foreground: #f8fafc;
   --muted: #11151b;
   --muted-foreground: #9ca3af;
-  --accent: #f5b83b;
+  --accent: #e8dfc8;
   --accent-foreground: #07090c;
 
   --destructive: #ef4444;
