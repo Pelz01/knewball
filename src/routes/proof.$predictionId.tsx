@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { useStore, matchById, describePrediction, shortAddress } from "@/lib/store";
+import { explorerTxUrl } from "@/lib/xlayer";
 
 export const Route = createFileRoute("/proof/$predictionId")({
   component: ProofPage,
@@ -139,6 +140,14 @@ function ProofPage() {
               >
                 {copied ? "Link copied" : "Copy share link"}
               </button>
+              <a
+                href={explorerTxUrl(p.txHash)}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition hover:bg-surface-elevated"
+              >
+                View on explorer
+              </a>
               <Link to="/profile/$wallet" params={{ wallet: p.wallet }} className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition hover:bg-surface-elevated">
                 View profile
               </Link>

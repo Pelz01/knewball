@@ -8,6 +8,7 @@ import {
   useStore, describePrediction, shortAddress,
   type DraftPrediction, type Prediction, type MatchResult,
 } from "@/lib/store";
+import { explorerTxUrl } from "@/lib/xlayer";
 
 export const Route = createFileRoute("/matches/$matchId")({
   loader: ({ params }) => {
@@ -59,6 +60,7 @@ function MatchDetail() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [txState, setTxState] = useState<"idle" | "locking" | "claiming" | "claimed" | "locked">("idle");
   const [showClaimToast, setShowClaimToast] = useState(false);
+  const [txError, setTxError] = useState<string | null>(null);
 
   const draftReady: DraftPrediction = {
     matchId: match.id, winner, homeScore: scoreH, awayScore: scoreA,
@@ -83,14 +85,19 @@ function MatchDetail() {
   async function handleLock() {
     if (kickoffPassed) return;
     saveDraft(draftReady);
+    setTxError(null);
     if (!wallet || !profile) {
       setShowOnboarding(true);
       return;
     }
     setTxState("locking");
-    await new Promise((r) => setTimeout(r, 900));
-    lockPrediction(match.id);
-    setTxState("locked");
+    try {
+      await lockPrediction(match.id);
+      setTxState("locked");
+    } catch (err) {
+      setTxState("idle");
+      setTxError(err instanceof Error ? err.message : "Transaction failed. Your draft is still saved.");
+    }
   }
 
   async function handleClaim() {
@@ -174,6 +181,7 @@ function MatchDetail() {
                 wallet={wallet}
                 onLock={handleLock}
                 txState={txState}
+                txError={txError}
                 hasDraft={!!draft}
                 onClearDraft={() => clearDraft(match.id)}
               />
@@ -318,7 +326,7 @@ function SplitBar({ label, code, pct, tone }: { label: string; code: string; pct
 function FormPanel({
   match, winner, setWinner, scoreH, setScoreH, scoreA, setScoreA,
   overUnder, setOverUnder, btts, setBtts, firstGoal, setFirstGoal,
-  disabled, kickoffPassed, wallet, onLock, txState, hasDraft, onClearDraft,
+  disabled, kickoffPassed, wallet, onLock, txState, txError, hasDraft, onClearDraft,
 }: {
   match: Match;
   winner: "home" | "draw" | "away"; setWinner: (v: "home" | "draw" | "away") => void;
@@ -328,7 +336,7 @@ function FormPanel({
   btts: "yes" | "no"; setBtts: (v: "yes" | "no") => void;
   firstGoal: "home" | "away" | "none"; setFirstGoal: (v: "home" | "away" | "none") => void;
   disabled: boolean; kickoffPassed: boolean; wallet: string | null;
-  onLock: () => void; txState: string; hasDraft: boolean; onClearDraft: () => void;
+  onLock: () => void; txState: string; txError: string | null; hasDraft: boolean; onClearDraft: () => void;
 }) {
   if (kickoffPassed) {
     return (
@@ -398,7 +406,7 @@ function FormPanel({
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-          {wallet ? "gas-free on X Layer · cannot be edited after lock" : "wallet connects on lock · draft is saved"}
+          {wallet ? "X Layer transaction · cannot be edited after lock" : "wallet connects on lock · draft is saved"}
         </div>
         <button
           type="button"
@@ -409,6 +417,11 @@ function FormPanel({
           {txState === "locking" ? "Locking on X Layer…" : "Lock my call →"}
         </button>
       </div>
+      {txError && (
+        <p className="mt-4 rounded-xl border border-red-card/30 bg-red-card/10 p-3 text-sm text-red-card">
+          {txError}
+        </p>
+      )}
     </>
   );
 }
@@ -453,6 +466,9 @@ function LockedPanel({ match, prediction, isLive }: { match: Match; prediction: 
         <Link to="/matches" className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-elevated">
           Back to matchboard
         </Link>
+        <a href={explorerTxUrl(prediction.txHash)} target="_blank" rel="noreferrer" className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-elevated">
+          View on explorer
+        </a>
       </div>
     </>
   );

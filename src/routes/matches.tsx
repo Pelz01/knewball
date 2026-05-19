@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
@@ -14,6 +14,10 @@ export const Route = createFileRoute("/matches")({
 function MatchesPage() {
   const [tab, setTab] = useState<"live" | "past">("live");
   const { unclaimed, predictions, claimPrediction } = useStore();
+  const matchRoute = useMatchRoute();
+  const childMatch = matchRoute({ to: "/matches/$matchId", fuzzy: true });
+
+  if (childMatch) return <Outlet />;
 
   const live = MATCHES.filter((m) => m.status === "live");
   const upcoming = MATCHES.filter((m) => m.status === "upcoming");

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { TEAMS } from "@/lib/match-data";
 import { useStore, shortAddress } from "@/lib/store";
 
@@ -22,6 +23,7 @@ export function OnboardingModal({
   const [name, setName] = useState("");
   const [country, setCountry] = useState<string>("ARG");
   const [team, setTeam] = useState<string>("BRA");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -40,21 +42,22 @@ export function OnboardingModal({
 
   const teamOptions = Object.values(TEAMS);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-md">
-      <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-border bg-surface">
+  const modal = (
+    <div className="fixed inset-0 z-[9999] bg-background/80 backdrop-blur-md">
+      <div className="fixed left-1/2 top-1/2 w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-3xl border border-border bg-surface shadow-2xl">
         <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-40" />
         <button
           type="button"
           onClick={onClose}
-          className="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:text-foreground"
+          className="absolute right-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:text-foreground"
           aria-label="Close"
         >
           ×
         </button>
 
-        {step === "wallet" && (
-          <div className="relative p-8">
+        <div className="relative max-h-[88vh] overflow-y-auto">
+          {step === "wallet" && (
+          <div className="relative p-6 pt-8 sm:p-8">
             <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">Step 1 / 2</span>
             <h2 className="mt-2 font-display text-3xl tracking-tight">Connect wallet to lock your call</h2>
             <p className="mt-3 text-sm text-muted-foreground">
@@ -65,24 +68,34 @@ export function OnboardingModal({
               disabled={pending}
               onClick={async () => {
                 setPending(true);
-                await new Promise((r) => setTimeout(r, 600));
-                connectWallet();
-                setPending(false);
-                setStep("profile");
+                setError(null);
+                try {
+                  await connectWallet();
+                  setStep("profile");
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : "Wallet connection failed.");
+                } finally {
+                  setPending(false);
+                }
               }}
               className="mt-6 w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
             >
               {pending ? "Connecting…" : "Connect wallet"}
             </button>
+            {error && (
+              <p className="mt-3 rounded-xl border border-red-card/30 bg-red-card/10 p-3 text-xs text-red-card">
+                {error}
+              </p>
+            )}
             <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-              gas-free on X Layer · no signature required for demo
+              OKX Wallet · X Layer testnet · OKB gas
             </p>
           </div>
-        )}
+          )}
 
-        {step === "profile" && (
+          {step === "profile" && (
           <form
-            className="relative p-8"
+            className="relative p-6 pt-8 sm:p-8"
             onSubmit={(e) => {
               e.preventDefault();
               if (!name.trim()) return;
@@ -138,10 +151,13 @@ export function OnboardingModal({
               Create profile
             </button>
           </form>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {

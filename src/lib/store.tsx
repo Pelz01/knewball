@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { MATCHES, type Match } from "./match-data";
+import { connectXLayerWallet, getInjectedProvider, sendPredictionProofTransaction } from "./xlayer";
 
 /* =========================================================================
  * KnewBall mock onchain store
@@ -53,6 +54,7 @@ export interface FanProfile {
 
 interface State {
   wallet: string | null;
+  chainId: number | null;
   profile: FanProfile | null;
   drafts: Record<string, DraftPrediction>;
   predictions: Prediction[];
@@ -62,7 +64,7 @@ interface State {
 const KEY = "knewball.v1";
 
 function load(): State {
-  if (typeof window === "undefined") return { wallet: null, profile: null, drafts: {}, predictions: [], results: {} };
+  if (typeof window === "undefined") return { wallet: null, chainId: null, profile: null, drafts: {}, predictions: [], results: {} };
   try {
     const raw = window.localStorage.getItem(KEY);
     if (!raw) return seed();
@@ -76,6 +78,7 @@ function seed(): State {
   // Seed past arenas with results so the Past Arenas tab is never empty.
   return {
     wallet: null,
+    chainId: null,
     profile: null,
     drafts: {},
     predictions: [],
@@ -142,7 +145,7 @@ export function scorePrediction(p: DraftPrediction, r: MatchResult) {
 
 interface Api extends State {
   // wallet/profile
-  connectWallet: () => string;
+  connectWallet: () => Promise<string>;
   disconnect: () => void;
   createProfile: (p: Omit<FanProfile, "wallet" | "createdAt">) => void;
   // drafts
@@ -150,7 +153,7 @@ interface Api extends State {
   clearDraft: (matchId: string) => void;
   getDraft: (matchId: string) => DraftPrediction | undefined;
   // predictions
-  lockPrediction: (matchId: string) => Prediction | undefined;
+  lockPrediction: (matchId: string) => Promise<Prediction | undefined>;
   getPrediction: (matchId: string, wallet?: string) => Prediction | undefined;
   getPredictionById: (id: string) => Prediction | undefined;
   claimPrediction: (id: string) => Prediction | undefined;
@@ -167,19 +170,36 @@ const Ctx = createContext<Api | null>(null);
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<State>(() => load());
   useEffect(() => { save(state); }, [state]);
+  useEffect(() => {
+    const provider = getInjectedProvider();
+    if (!provider?.on || !provider.removeListener) return;
+    const onAccountsChanged = (accounts: unknown) => {
+      const next = Array.isArray(accounts) && typeof accounts[0] === "string" ? accounts[0] : null;
+      setState((s) => ({ ...s, wallet: next, profile: next === s.profile?.wallet ? s.profile : null }));
+    };
+    const onChainChanged = (chainId: unknown) => {
+      if (typeof chainId === "string") setState((s) => ({ ...s, chainId: Number.parseInt(chainId, 16) }));
+    };
+    provider.on("accountsChanged", onAccountsChanged);
+    provider.on("chainChanged", onChainChanged);
+    return () => {
+      provider.removeListener?.("accountsChanged", onAccountsChanged);
+      provider.removeListener?.("chainChanged", onChainChanged);
+    };
+  }, []);
 
-  const connectWallet = useCallback(() => {
+  const connectWallet = useCallback(async () => {
     let wallet = state.wallet;
     if (!wallet) {
-      const rnd = Array.from({ length: 38 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("");
-      wallet = "0x" + rnd;
-      setState((s) => ({ ...s, wallet: wallet! }));
+      const connected = await connectXLayerWallet();
+      wallet = connected.wallet;
+      setState((s) => ({ ...s, wallet: wallet!, chainId: connected.chainId }));
     }
     return wallet;
   }, [state.wallet]);
 
   const disconnect = useCallback(() => {
-    setState((s) => ({ ...s, wallet: null, profile: null }));
+    setState((s) => ({ ...s, wallet: null, chainId: null, profile: null }));
   }, []);
 
   const createProfile = useCallback((p: Omit<FanProfile, "wallet" | "createdAt">) => {
@@ -201,17 +221,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const lockPrediction = useCallback((matchId: string): Prediction | undefined => {
+  const lockPrediction = useCallback(async (matchId: string): Promise<Prediction | undefined> => {
+    const current = state.drafts[matchId];
+    const wallet = state.wallet;
+    if (!current || !wallet) return undefined;
+    const txHash = await sendPredictionProofTransaction({ from: wallet, profile: state.profile, draft: current });
     let out: Prediction | undefined;
     setState((s) => {
       const d = s.drafts[matchId];
       if (!d || !s.wallet) return s;
-      const txTail = Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, "0");
       const pred: Prediction = {
         ...d,
         id: `pred_${matchId}_${s.wallet.slice(2, 8)}_${Date.now().toString(36)}`,
         wallet: s.wallet,
-        txHash: "0x" + txTail.padEnd(64, "0"),
+        txHash,
         lockedAt: Date.now(),
         claimed: false,
       };
@@ -221,7 +244,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return { ...s, drafts: rest, predictions: [...s.predictions, pred] };
     });
     return out;
-  }, []);
+  }, [state.drafts, state.profile, state.wallet]);
 
   const getPrediction = useCallback((matchId: string, w?: string) => {
     const wallet = w ?? state.wallet;
