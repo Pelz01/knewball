@@ -4,6 +4,8 @@ import { Logo, Wordmark } from "./Logo";
 const links = [
   { to: "/matches", label: "Matches" },
   { to: "/leaderboard", label: "Leaderboard" },
+  { to: "/vault", label: "Vault" },
+  { to: "/profile", label: "Profile" },
   { to: "/how-it-works", label: "How it works" },
 ] as const;
 

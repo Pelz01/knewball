@@ -1,4 +1,5 @@
 import type { Match } from "@/lib/match-data";
+import { Link } from "@tanstack/react-router";
 
 function formatKickoff(iso: string) {
   const d = new Date(iso);
@@ -96,14 +97,15 @@ export function MatchCard({ match }: { match: Match }) {
         <span className="truncate px-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
           {match.venue.split(",")[0]}
         </span>
-        <button
-          type="button"
+        <Link
+          to="/matches/$matchId"
+          params={{ matchId: match.id }}
           disabled={isFinal}
           className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:bg-surface-elevated disabled:text-muted-foreground"
         >
           {isFinal ? "Closed" : isLive ? "Late call" : "Make call"}
           {!isFinal && <span aria-hidden>→</span>}
-        </button>
+        </Link>
       </div>
     </article>
   );
