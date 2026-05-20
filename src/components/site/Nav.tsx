@@ -12,7 +12,7 @@ const appLinks = [
 const publicLinks = [
   { to: "/matches", label: "Matchboard" },
   { to: "/leaderboard", label: "Leaderboard" },
-  { to: "/how-it-works", label: "How it works" },
+  { to: "/how-it-works", label: "How to play" },
 ] as const;
 
 export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
@@ -26,6 +26,10 @@ export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
     return () => window.removeEventListener("knewball:connect", openConnect);
   }, []);
 
+  // Once wallet is connected the nav is always the full app nav,
+  // regardless of which page / variant we're on.
+  const isConnected = !!wallet;
+
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
@@ -34,33 +38,75 @@ export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
           <Wordmark className="font-display text-lg tracking-tight" />
         </Link>
 
-        {variant === "app" && (
-          <nav className="hidden items-center gap-1 md:flex">
-            {(wallet ? appLinks : publicLinks).map((l) => (
+        {/* Centre nav — always visible */}
+        <nav className="hidden items-center gap-1 md:flex">
+          {(wallet ? appLinks : publicLinks).map((l) => {
+            const isHowToPlay = l.to === "/how-it-works";
+            const handleClick = (e: React.MouseEvent) => {
+              if (isHowToPlay && window.location.pathname === "/") {
+                e.preventDefault();
+                document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
+              }
+            };
+            return (
               <Link
                 key={l.to}
                 to={l.to}
+                onClick={handleClick}
                 className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-surface-elevated hover:text-foreground"
                 activeProps={{ className: "bg-surface-elevated text-foreground" }}
               >
                 {l.label}
               </Link>
-            ))}
-            {wallet && profile && (
+            );
+          })}
+          {wallet && profile && (
+            <Link
+              to="/profile/$wallet"
+              params={{ wallet }}
+              className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-surface-elevated hover:text-foreground"
+              activeProps={{ className: "bg-surface-elevated text-foreground" }}
+            >
+              My Profile
+            </Link>
+          )}
+        </nav>
+
+        {/* Right side — always app-style when connected */}
+        <div className="flex items-center gap-2">
+          {wallet && profile ? (
+            <div className="flex items-center gap-2">
               <Link
                 to="/profile/$wallet"
                 params={{ wallet }}
-                className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-surface-elevated hover:text-foreground"
-                activeProps={{ className: "bg-surface-elevated text-foreground" }}
+                className="flex items-center gap-3 rounded-full border border-border bg-surface px-3 py-1.5 text-sm transition hover:bg-surface-elevated"
               >
-                My Profile
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs">⚽</span>
+                <span className="hidden flex-col leading-tight sm:flex">
+                  <span className="font-medium text-foreground">{profile.displayName}</span>
+                  <span className="font-mono text-[10px] tracking-[0.18em] text-primary">
+                    {totalBallIq.toLocaleString()} IQ
+                  </span>
+                </span>
+                <span className="font-mono text-[10px] tracking-[0.18em] text-muted-foreground sm:hidden">
+                  {profile.displayName} · {totalBallIq.toLocaleString()} IQ
+                </span>
               </Link>
-            )}
-          </nav>
-        )}
-
-        <div className="flex items-center gap-2">
-          {variant === "marketing" ? (
+              <button
+                type="button"
+                onClick={() => { disconnect(); router.navigate({ to: "/" }); }}
+                className="hidden rounded-full border border-border px-3 py-1.5 font-mono text-[10px] tracking-[0.22em] text-muted-foreground hover:text-foreground md:inline-flex"
+              >
+                Sign out
+              </button>
+            </div>
+          ) : wallet ? (
+            /* Connected but no profile yet — show address pill */
+            <span className="inline-flex items-center rounded-full border border-border bg-surface px-4 py-2 font-mono text-[10px] tracking-[0.18em] text-muted-foreground">
+              {shortAddress(wallet)}
+            </span>
+          ) : variant === "marketing" ? (
+            /* Not connected on the landing page — show marketing CTAs */
             <>
               <Link
                 to="/leaderboard"
@@ -76,39 +122,8 @@ export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
                 <span aria-hidden className="text-base leading-none transition group-hover:translate-x-0.5">→</span>
               </Link>
             </>
-          ) : wallet && profile ? (
-            <div className="flex items-center gap-2">
-              <Link
-                to="/profile/$wallet"
-                params={{ wallet }}
-                className="flex items-center gap-3 rounded-full border border-border bg-surface px-3 py-1.5 text-sm transition hover:bg-surface-elevated"
-              >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs">⚽</span>
-                <span className="hidden flex-col leading-tight sm:flex">
-                  <span className="font-medium text-foreground">{profile.displayName}</span>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
-                    {totalBallIq.toLocaleString()} IQ
-                  </span>
-                </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:hidden">
-                  {profile.displayName} · {totalBallIq.toLocaleString()} IQ
-                </span>
-              </Link>
-              <button
-                type="button"
-                onClick={() => { disconnect(); router.navigate({ to: "/" }); }}
-                className="hidden rounded-full border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground md:inline-flex"
-              >
-                Sign out
-              </button>
-            </div>
-          ) : wallet ? (
-            <span
-              className="inline-flex items-center rounded-full border border-border bg-surface px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
-            >
-              {shortAddress(wallet)}
-            </span>
           ) : (
+            /* Not connected on an app page — connect button */
             <button
               type="button"
               onClick={() => setOpen(true)}

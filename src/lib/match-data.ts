@@ -18,6 +18,10 @@ export interface Match {
   score?: { home: number; away: number };
   minute?: number;
   callsLocked: number;
+  underdogTeam?: string; // e.g. "JPN"
+  isUpsetResult?: boolean;
+  chaosOutcome?: string; // e.g. "underdog win", "shock draw"
+  resolvedAt?: number;
 }
 
 const t = (code: string, name: string, flag: string, iso2: string): Team => ({ code, name, flag, iso2 });
@@ -135,11 +139,12 @@ export const MATCHES: Match[] = [
     id: "m-006",
     group: "Group C - Matchday 1",
     home: TEAMS.BRA,
-    away: TEAMS.MAR,
+    away: TEAMS.JPN,
     kickoff: "2026-06-13T22:00:00Z",
     venue: "World Cup 2026",
     status: "upcoming",
     callsLocked: 29210,
+    underdogTeam: "JPN",
   },
   {
     id: "m-007",
@@ -366,9 +371,21 @@ export interface Badge {
   icon: string;
 }
 
-// Badge names must match exactly what scorePrediction() in store.tsx assigns
+// Badge names must match exactly what evaluates in store.tsx
 export const BADGES: Badge[] = [
-  { id: "perfect-call",      name: "Perfect Call",       description: "Correct on all 5 markets in one match",   icon: "🏆" },
-  { id: "knew-ball",         name: "Knew Ball",           description: "Predicted the exact correct score",        icon: "🎯" },
-  { id: "first-goal-caller", name: "First Goal Caller",   description: "Called the first team to score correctly", icon: "⚡" },
+  { id: "first-call",      name: "First Call",      description: "User locks first prediction on X Layer",      icon: "✉️" },
+  { id: "knew-ball",        name: "Knew Ball",       description: "User gets first correct prediction",          icon: "🎯" },
+  { id: "perfect-call",     name: "Perfect Call",    description: "User gets all prediction fields correct",     icon: "🏆" },
+  { id: "score-prophet",    name: "Score Prophet",   description: "User predicts exact final score",             icon: "🔮" },
+  { id: "first-blood",      name: "First Blood",     description: "User predicts first team to score",           icon: "⚡" },
+  { id: "hot-foot",         name: "Hot Foot",        description: "User gets 3 correct winner calls in a row",   icon: "🔥" },
+  { id: "upset-hunter",     name: "Upset Hunter",    description: "User correctly predicts underdog win",        icon: "🏹" },
+  { id: "chaos-merchant",   name: "Chaos Merchant",  description: "You saw the madness coming",                  icon: "🌀" },
+  { id: "country-captain",  name: "Country Captain", description: "User enters top 10 for their country",        icon: "👑" },
 ];
+
+export const BADGE_GROUPS = {
+  "Call Milestone": ["first-call"],
+  "Accuracy": ["first-blood", "score-prophet", "perfect-call"],
+  "Reputation": ["knew-ball", "hot-foot", "upset-hunter", "chaos-merchant", "country-captain"]
+};

@@ -2,16 +2,27 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { BADGES, type Badge } from "@/lib/match-data";
+import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/vault")({
   component: VaultPage,
 });
 
-const OWNED = new Set(["knew-ball", "first-goal-caller"]);
-
 function VaultPage() {
-  const owned = BADGES.filter((b) => OWNED.has(b.id));
-  const locked = BADGES.filter((b) => !OWNED.has(b.id));
+  const { wallet, predictions } = useStore();
+  const myPreds = wallet ? predictions.filter((p) => p.wallet === wallet) : [];
+  const earnedNames = Array.from(new Set(myPreds.flatMap((p) => p.badges || (p.badge ? [p.badge] : []))));
+
+  // Map earned badge names to badge IDs
+  const ownedIds = new Set(
+    BADGES.filter((b) => earnedNames.includes(b.name)).map((b) => b.id)
+  );
+
+  // Fallback for demo when no wallet is connected or no predictions are claimed yet
+  const actualOwnedIds = ownedIds.size > 0 ? ownedIds : new Set(["first-call", "knew-ball"]);
+
+  const owned = BADGES.filter((b) => actualOwnedIds.has(b.id));
+  const locked = BADGES.filter((b) => !actualOwnedIds.has(b.id));
 
   return (
     <div className="min-h-screen bg-background text-foreground">

@@ -17,8 +17,8 @@ function Index() {
       <Nav variant="marketing" />
       <Hero />
 
-      <main className="mx-auto max-w-7xl space-y-24 px-6 py-20 md:py-28">
-        <section>
+      <main className="mx-auto max-w-7xl space-y-14 px-4 py-10 sm:px-6 md:space-y-24 md:py-20 lg:py-28">
+        <section id="how-it-works">
           <HowItWorks />
         </section>
 
@@ -54,7 +54,7 @@ function Index() {
           <ProofCard />
         </section>
 
-        <section className="relative overflow-hidden rounded-3xl border border-border bg-surface p-10 text-center md:p-16">
+        <section className="relative overflow-hidden rounded-3xl border border-border bg-surface p-7 text-center sm:p-10 md:p-16">
           <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-50" />
           <div className="pointer-events-none absolute -top-1/2 left-1/2 -z-0 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-primary/20 blur-3xl" />
           <div className="relative">
@@ -132,9 +132,9 @@ function Pillars() {
           KnewBall takes football's loudest opinions and gives them an onchain record.
         </p>
       </div>
-      <div className="grid gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-2">
+      <div className="grid gap-px overflow-hidden rounded-2xl border border-border bg-border sm:grid-cols-2">
         {PILLARS.map((p) => (
-          <div key={p.n} className="bg-surface p-8 transition hover:bg-surface-elevated">
+          <div key={p.n} className="bg-surface p-5 transition hover:bg-surface-elevated sm:p-8">
             <div className="flex items-baseline justify-between">
               <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
                 {p.n}

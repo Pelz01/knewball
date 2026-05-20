@@ -11,7 +11,7 @@ export const Route = createFileRoute("/profile/$wallet")({
 
 function ProfileByWallet() {
   const { wallet: pageWallet } = Route.useParams();
-  const { wallet, profile, predictions, results, totalBallIq } = useStore();
+  const { wallet, profile, predictions, results, totalBallIq, currentStreak } = useStore();
   const pageWalletLower = pageWallet?.toLowerCase() || "";
   const isMe = !!(wallet && pageWallet && wallet.toLowerCase() === pageWalletLower);
 
@@ -31,8 +31,8 @@ function ProfileByWallet() {
   const correct = myPreds.filter((p) => p.claimed && (p.pointsEarned ?? 0) > 0).length;
   const total = myPreds.length;
   const accuracy = total ? Math.round((correct / total) * 100) : isMe ? 0 : persona!.accuracy;
-  const streak = isMe ? Math.min(correct, 9) : persona!.streak;
-  const earnedBadges = Array.from(new Set(myPreds.map((p) => p.badge).filter(Boolean))) as string[];
+  const streak = isMe ? currentStreak : persona!.streak;
+  const earnedBadges = Array.from(new Set(myPreds.flatMap((p) => p.badges || (p.badge ? [p.badge] : [])).filter(Boolean))) as string[];
 
   const stats = [
     { label: "Ball IQ", value: ballIq.toLocaleString(), sub: "Season 01" },
@@ -44,10 +44,10 @@ function ProfileByWallet() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
-      <main className="mx-auto max-w-7xl px-6 py-12 md:py-16">
-        <section className="relative overflow-hidden rounded-3xl border border-border bg-surface p-8 md:p-12">
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:py-14 lg:py-16">
+        <section className="relative overflow-hidden rounded-3xl border border-border bg-surface p-5 sm:p-8 md:p-12">
           <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-40" />
-          <div className="relative flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
+          <div className="relative flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div className="flex items-center gap-5">
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-border bg-background overflow-hidden p-2">
                 <Flag team={country} className="h-full w-full rounded" />
@@ -56,7 +56,7 @@ function ProfileByWallet() {
                 <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
                   Fan profile {isMe && "· you"}
                 </span>
-                <h1 className="mt-1 font-display text-4xl leading-[1] tracking-tight md:text-6xl">{displayName}</h1>
+                <h1 className="mt-1 font-display text-3xl leading-[1] tracking-tight sm:text-4xl md:text-6xl">{displayName}</h1>
                 <p className="mt-2 font-mono text-xs text-muted-foreground">
                   {country.name} · wallet {pageWallet ? shortAddress(pageWallet) : ""}
                 </p>
@@ -72,19 +72,19 @@ function ProfileByWallet() {
             </div>
           </div>
 
-          <div className="relative mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="relative mt-7 grid gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
             {stats.map((s) => (
-              <div key={s.label} className="rounded-2xl border border-hairline bg-background p-5">
+              <div key={s.label} className="rounded-2xl border border-hairline bg-background p-4 sm:p-5">
                 <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{s.label}</div>
-                <div className="mt-2 font-display text-4xl tracking-tight">{s.value}</div>
+                <div className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">{s.value}</div>
                 <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{s.sub}</div>
               </div>
             ))}
           </div>
         </section>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-          <section className="rounded-3xl border border-border bg-surface p-7">
+        <div className="mt-6 grid gap-5 sm:mt-10 lg:grid-cols-[1.6fr_1fr]">
+          <section className="rounded-3xl border border-border bg-surface p-5 sm:p-7">
             <div className="mb-6 flex items-baseline justify-between border-b border-hairline pb-3">
               <h2 className="font-display text-2xl tracking-tight md:text-3xl">Call history</h2>
               <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
@@ -152,7 +152,7 @@ function ProfileByWallet() {
           </section>
 
           <aside className="space-y-6">
-            <div className="rounded-3xl border border-border bg-surface p-6">
+            <div className="rounded-3xl border border-border bg-surface p-5 sm:p-6">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Earned badges</h3>
               <div className="mt-4 grid grid-cols-2 gap-3">
                 {BADGES.map((b) => {
@@ -188,7 +188,7 @@ function ProfileByWallet() {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-border bg-surface p-6">
+            <div className="rounded-3xl border border-border bg-surface p-5 sm:p-6">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Open calls available</h3>
               <ul className="mt-4 space-y-3">
                 {MATCHES.filter((m) => m.status === "upcoming").slice(0, 3).map((m) => (

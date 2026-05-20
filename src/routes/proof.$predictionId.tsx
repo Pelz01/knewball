@@ -102,7 +102,11 @@ function ProofPage() {
                   <Row k="Tx hash" v={`${p.txHash.slice(0, 10)}…${p.txHash.slice(-6)}`} />
                   <Row k="Status" v={p.claimed ? "Claimed" : r ? "Ready to claim" : "Awaiting kickoff"} />
                   {p.claimed && <Row k="Ball IQ earned" v={`+${p.pointsEarned}`} />}
-                  {p.badge && <Row k="Badge" v={p.badge} />}
+                  {p.badges && p.badges.length > 0 ? (
+                    <Row k="Badges" v={p.badges.join(", ")} />
+                  ) : p.badge ? (
+                    <Row k="Badge" v={p.badge} />
+                  ) : null}
                 </dl>
               </div>
             </div>
@@ -125,6 +129,11 @@ function ProofPage() {
                 </ul>
               </div>
             )}
+
+            {/* What is locked proof explanation */}
+            <div className="mt-8 rounded-xl border border-border bg-surface-elevated/20 p-4 text-xs text-muted-foreground leading-relaxed">
+              <span className="font-semibold text-foreground">What is this proof?</span> This card represents a cryptographic proof locked on X Layer prior to kickoff. Because it is written onchain and timestamped, it guarantees that this call was made before the match started and cannot be edited, faked, or manipulated.
+            </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to="/matches" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110">

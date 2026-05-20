@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { OnboardingModal } from "@/components/site/OnboardingModal";
-import { MATCHES, type Match } from "@/lib/match-data";
+import { MATCHES, type Match, BADGES, BADGE_GROUPS } from "@/lib/match-data";
 import { Flag } from "@/components/site/Flag";
 import {
   useStore, describePrediction, shortAddress,
@@ -40,7 +40,6 @@ function hash(s: string) {
 
 function MatchDetail() {
   const { match } = Route.useLoaderData();
-  const router = useRouter();
   const { wallet, profile, getDraft, saveDraft, clearDraft, getPrediction, lockPrediction, getResult, claimPrediction } = useStore();
 
   const pred = getPrediction(match.id);
@@ -124,7 +123,7 @@ function MatchDetail() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
-      <main className="mx-auto max-w-6xl px-6 py-12 md:py-16">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-12 lg:py-16">
         <div className="mb-8 flex items-center justify-between">
           <Link to="/matches" className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground hover:text-foreground">
             ← Matchboard
@@ -136,7 +135,7 @@ function MatchDetail() {
         <section className="relative overflow-hidden rounded-3xl border border-border bg-surface">
           <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-60" />
           <div className="pointer-events-none absolute inset-0 bg-scanline opacity-40" />
-          <div className="relative grid items-center gap-6 px-8 py-12 md:grid-cols-[1fr_auto_1fr] md:px-14 md:py-16">
+          <div className="relative grid items-center gap-5 px-5 py-8 sm:gap-6 sm:px-8 sm:py-12 md:grid-cols-[1fr_auto_1fr] md:px-14 md:py-16">
             <TeamBig team={match.home} align="right" score={result?.homeScore ?? match.score?.home} />
             <div className="flex flex-col items-center gap-3">
               {result ? (
@@ -158,7 +157,7 @@ function MatchDetail() {
             </div>
             <TeamBig team={match.away} align="left" score={result?.awayScore ?? match.score?.away} />
           </div>
-          <div className="relative flex flex-wrap items-center justify-between gap-3 border-t border-hairline px-8 py-4 md:px-14">
+          <div className="relative flex flex-wrap items-center justify-between gap-3 border-t border-hairline px-5 py-3.5 sm:px-8 md:px-14">
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{match.venue}</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
               {statusPill} · <span className="text-primary">{match.callsLocked.toLocaleString()}</span> calls on X Layer
@@ -166,8 +165,8 @@ function MatchDetail() {
           </div>
         </section>
 
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-          <section className="rounded-3xl border border-border bg-surface p-7 md:p-9">
+        <div className="mt-6 grid gap-5 sm:mt-10 lg:grid-cols-[1.4fr_1fr]">
+          <section className="rounded-3xl border border-border bg-surface p-5 sm:p-7 md:p-9">
             {showForm ? (
               <FormPanel
                 match={match}
@@ -200,8 +199,8 @@ function MatchDetail() {
           </section>
 
           {/* Side panels */}
-          <aside className="space-y-6">
-            <div className="rounded-3xl border border-border bg-surface p-6">
+          <aside className="space-y-5 sm:space-y-6">
+            <div className="rounded-3xl border border-border bg-surface p-5 sm:p-6">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Fan call split</h3>
               <div className="mt-4 space-y-3">
                 <SplitBar label={match.home.name} code={match.home.code} pct={homePct} tone="primary" />
@@ -213,7 +212,7 @@ function MatchDetail() {
               </p>
             </div>
 
-            <div className="rounded-3xl border border-border bg-surface p-6">
+            <div className="rounded-3xl border border-border bg-surface p-5 sm:p-6">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Head-to-head</h3>
               <ul className="mt-4 space-y-2 font-mono text-xs text-muted-foreground">
                 <li className="flex justify-between"><span>Last meeting</span><span className="text-foreground">2 – 1 {match.home.code}</span></li>
@@ -223,7 +222,7 @@ function MatchDetail() {
               </ul>
             </div>
 
-            <div className="rounded-3xl border border-border bg-surface p-6">
+            <div className="rounded-3xl border border-border bg-surface p-5 sm:p-6">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Onchain proof</h3>
               <p className="mt-3 text-sm text-muted-foreground">
                 Every call is hashed and signed on X Layer at kickoff. No edits, no excuses.
@@ -243,7 +242,7 @@ function MatchDetail() {
       />
 
       {showClaimToast && pred?.claimed && (
-        <ClaimCelebration prediction={pred} match={match} onClose={() => setShowClaimToast(false)} onShare={() => router.navigate({ to: "/proof/$predictionId", params: { predictionId: pred.id } })} />
+        <ClaimCelebration prediction={pred} match={match} onClose={() => setShowClaimToast(false)} />
       )}
 
       <Footer />
@@ -339,6 +338,8 @@ function FormPanel({
   disabled: boolean; kickoffPassed: boolean; wallet: string | null;
   onLock: () => void; txState: string; txError: string | null; hasDraft: boolean; onClearDraft: () => void;
 }) {
+  const [showScoring, setShowScoring] = useState(false);
+
   if (kickoffPassed) {
     return (
       <div className="text-center py-6">
@@ -397,7 +398,36 @@ function FormPanel({
         <CallButton label="0-0" sub="No goal" active={firstGoal === "none"} onClick={() => setFirstGoal("none")} disabled={disabled} />
       </PickGroup>
 
-      <div className="mt-8 rounded-2xl border border-hairline bg-background p-5">
+      {/* Point Breakdown Accordion */}
+      <div className="mt-6 rounded-2xl border border-border bg-surface-elevated/30 overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setShowScoring(!showScoring)}
+          className="flex w-full items-center justify-between px-5 py-4 text-left font-sans text-xs font-semibold uppercase tracking-wider text-foreground hover:bg-surface-elevated/50 transition-colors"
+        >
+          <span>Point Breakdown</span>
+          <span className="text-muted-foreground text-sm">{showScoring ? "−" : "+"}</span>
+        </button>
+        {showScoring && (
+          <div className="border-t border-border/30 px-5 py-4 bg-background/25 text-xs text-muted-foreground space-y-2 font-mono">
+            <div className="flex justify-between"><span>Winner Correct</span><span className="text-primary font-bold">+50 IQ</span></div>
+            <div className="flex justify-between"><span>Exact Score</span><span className="text-primary font-bold">+200 IQ</span></div>
+            <div className="flex justify-between"><span>Over/Under Goals</span><span className="text-primary font-bold">+40 IQ</span></div>
+            <div className="flex justify-between"><span>Both Teams to Score</span><span className="text-primary font-bold">+40 IQ</span></div>
+            <div className="flex justify-between"><span>First Team to Score</span><span className="text-primary font-bold">+60 IQ</span></div>
+            <div className="flex justify-between border-t border-border/30 pt-2 text-foreground">
+              <span>Perfect Call Bonus</span><span className="text-glow-green font-bold">+150 IQ</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Anti-betting Note */}
+      <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground leading-relaxed">
+        <span className="font-semibold text-primary">KnewBall is not betting.</span> No odds. No wagers. Just proof of football knowledge.
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-hairline bg-background p-5">
         <span className="font-sans text-xs font-semibold uppercase tracking-wider text-primary">Your call</span>
         <ul className="mt-2 grid gap-1 text-sm md:grid-cols-2">
           {describePrediction({ matchId: match.id, winner, homeScore: scoreH, awayScore: scoreA, overUnder, btts, firstGoal, createdAt: 0 }, match)
@@ -548,30 +578,147 @@ function ResolvedPanel({
 }
 
 function ClaimCelebration({
-  prediction, match, onClose, onShare,
-}: { prediction: Prediction; match: Match; onClose: () => void; onShare: () => void }) {
+  prediction, match, onClose,
+}: { prediction: Prediction; match: Match; onClose: () => void }) {
+  const router = useRouter();
+  const unlockedBadgesList = prediction.badges || (prediction.badge ? [prediction.badge] : []);
+
+  // Map unlocked badge names to their metadata
+  const unlockedBadges = BADGES.filter(b => unlockedBadgesList.includes(b.name));
+
+  // Check if perfect call on Brazil vs Japan
+  const isPerfectJapan = match.home.code === "BRA" && match.away.code === "JPN" &&
+    (prediction.pointsEarned ?? 0) >= 540;
+
+  // Categorize badges
+  const categories = Object.entries(BADGE_GROUPS).map(([catName, badgeIds]) => {
+    const badgesInCat = unlockedBadges.filter(b => badgeIds.includes(b.id));
+    return { name: catName, badges: badgesInCat };
+  }).filter(c => c.badges.length > 0);
+
+  const shareText = `I just claimed ${prediction.pointsEarned} Ball IQ and unlocked badges: ${unlockedBadges.map(b => b.name).join(", ")} on KnewBall!`;
+  const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-md">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-primary/40 bg-surface ring-pitch">
-        <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-50" />
-        <div className="relative p-10 text-center">
-          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">You knew ball</span>
-          <h2 className="mt-3 font-display text-5xl tracking-tight text-glow-green">
-            +{prediction.pointsEarned}
-          </h2>
-          <p className="mt-1 font-display text-2xl tracking-tight text-muted-foreground">Ball IQ claimed</p>
-          <p className="mt-3 text-sm text-muted-foreground">
-            {match.home.name} vs {match.away.name}
-            {prediction.badge && <> · <span className="text-primary">{prediction.badge}</span> badge unlocked</>}
-          </p>
-          <div className="mt-6 flex flex-wrap justify-center gap-3">
-            <button onClick={onShare} className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:brightness-110">
-              Share proof →
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 backdrop-blur-xl animate-fade-in">
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-primary/30 bg-surface/95 shadow-2xl ring-pitch p-6 sm:p-10">
+        <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-30" />
+
+        {/* Cinematic ambient glow background */}
+        <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-primary/20 blur-[100px]" />
+        <div className="absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-[100px]" />
+
+        <div className="relative flex flex-col items-center text-center">
+          {/* Header */}
+          {isPerfectJapan ? (
+            <div className="mb-4">
+              <span className="inline-block rounded-full bg-primary/10 border border-primary/20 px-4 py-1 text-xs font-mono tracking-widest text-primary animate-pulse">
+                THE PERFECT SLATE
+              </span>
+              <h2 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl md:text-5xl text-primary text-glow-green">
+                you cleared the board
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground font-mono">
+                on Brazil vs Japan
+              </p>
+            </div>
+          ) : (
+            <div className="mb-4">
+              <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
+                matchday verdict
+              </span>
+              <h2 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">
+                fixture complete
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground font-mono">
+                {match.home.name} vs {match.away.name}
+              </p>
+            </div>
+          )}
+
+          {/* Points Claimed */}
+          <div className="my-6 rounded-2xl border border-primary/20 bg-primary/5 px-8 py-5 backdrop-blur-sm relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground block">ball iq claimed</span>
+            <div className="mt-1 font-display text-4xl sm:text-6xl text-glow-green font-bold tracking-tight">
+              +{prediction.pointsEarned}
+            </div>
+          </div>
+
+          {/* Badges Unlocked Section */}
+          {unlockedBadges.length > 0 ? (
+            <div className="w-full text-left mt-4 mb-8">
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground border-b border-border/40 pb-2 mb-4">
+                badges unlocked
+              </h3>
+
+              <div className="space-y-6 max-h-[300px] overflow-y-auto pr-2">
+                {categories.map(cat => (
+                  <div key={cat.name} className="space-y-3">
+                    <h4 className="font-mono text-[9px] uppercase tracking-[0.25em] text-primary/85">
+                      {cat.name}
+                    </h4>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {cat.badges.map(badge => (
+                        <div key={badge.id} className="flex items-center gap-3 rounded-xl border border-border/40 bg-surface-elevated/40 p-3 hover:border-primary/30 transition-colors">
+                          <div className="text-2xl">{badge.icon}</div>
+                          <div>
+                            <div className="font-semibold text-xs text-foreground font-display">{badge.name}</div>
+                            <div className="text-[10px] text-muted-foreground">{badge.description}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground font-mono mb-8">
+              No new badges unlocked this matchday.
+            </p>
+          )}
+
+          {/* Actions */}
+          <div className="flex flex-wrap justify-center gap-3 w-full border-t border-border/40 pt-6">
+            <a
+              href={xShareUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 min-w-[140px] text-center rounded-full bg-primary px-5 py-3 text-xs font-semibold text-primary-foreground hover:brightness-110 transition-all font-mono uppercase tracking-wider"
+            >
+              share collection to X
+            </a>
+            <button
+              onClick={() => {
+                onClose();
+                router.navigate({ to: "/proof/$predictionId", params: { predictionId: prediction.id } });
+              }}
+              className="flex-1 min-w-[140px] rounded-full border border-border bg-background px-5 py-3 text-xs font-semibold text-foreground hover:bg-surface-elevated transition-all font-mono uppercase tracking-wider"
+            >
+              view proof
             </button>
-            <button onClick={onClose} className="rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground hover:bg-surface-elevated">
-              Keep playing
+            <button
+              onClick={() => {
+                onClose();
+                router.navigate({ to: "/profile/$wallet", params: { wallet: prediction.wallet } });
+              }}
+              className="flex-1 min-w-[140px] rounded-full border border-border bg-background px-5 py-3 text-xs font-semibold text-foreground hover:bg-surface-elevated transition-all font-mono uppercase tracking-wider"
+            >
+              view profile
             </button>
           </div>
+
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="Close"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
         </div>
       </div>
     </div>

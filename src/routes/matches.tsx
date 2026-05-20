@@ -13,7 +13,8 @@ export const Route = createFileRoute("/matches")({
 
 function MatchesPage() {
   const [tab, setTab] = useState<"live" | "past">("live");
-  const { wallet, profile, totalBallIq, unclaimed, predictions, claimPrediction, createProfile } = useStore();
+  const [showHelp, setShowHelp] = useState(false);
+  const { wallet, profile, totalBallIq, unclaimed, predictions, claimPrediction, createProfile, currentStreak } = useStore();
   const matchRoute = useMatchRoute();
   const childMatch = matchRoute({ to: "/matches/$matchId", fuzzy: true });
 
@@ -31,7 +32,7 @@ function MatchesPage() {
       <div className="min-h-screen bg-background text-foreground">
         <Nav />
         <LiveTicker />
-        <main className="mx-auto max-w-5xl px-6 py-10 md:py-14">
+        <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10 md:py-14">
           <ProfileSetupPanel wallet={wallet} onCreate={createProfile} />
         </main>
         <Footer />
@@ -44,11 +45,11 @@ function MatchesPage() {
       <div className="min-h-screen bg-background text-foreground">
         <Nav />
         <LiveTicker />
-        <main className="mx-auto max-w-7xl px-6 py-8 md:py-10">
+        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
           <section className="grid gap-6 lg:grid-cols-[1fr_520px] lg:items-end">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">Matchboard</span>
-              <h1 className="mt-2 max-w-4xl font-display text-4xl leading-[0.95] tracking-tight md:text-5xl">
+              <h1 className="mt-2 max-w-4xl font-display text-3xl leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
                 Browse open World Cup calls.
               </h1>
               <p className="mt-3 max-w-2xl text-muted-foreground">
@@ -61,6 +62,13 @@ function MatchesPage() {
                   className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
                 >
                   Connect wallet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowHelp(true)}
+                  className="rounded-full border border-border bg-surface px-6 py-3 text-sm font-semibold text-foreground transition hover:bg-surface-elevated"
+                >
+                  How to play
                 </button>
                 <Link to="/leaderboard" className="rounded-full border border-border bg-surface px-6 py-3 text-sm font-semibold text-foreground transition hover:bg-surface-elevated">
                   View leaderboard
@@ -116,6 +124,78 @@ function MatchesPage() {
           </section>
         </main>
         <Footer />
+
+        {/* How to play modal */}
+        {showHelp && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md">
+            <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-border bg-surface p-6 shadow-2xl sm:p-8">
+              <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-30" />
+              <div className="relative">
+                <div className="flex items-center justify-between border-b border-hairline pb-4">
+                  <h2 className="font-display text-2xl tracking-tight">How to play KnewBall</h2>
+                  <button
+                    type="button"
+                    onClick={() => setShowHelp(false)}
+                    className="rounded-full p-1 text-muted-foreground hover:bg-surface-elevated hover:text-foreground transition"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div className="mt-6 space-y-4 text-sm text-muted-foreground">
+                  <div className="flex gap-4">
+                    <span className="font-display text-lg text-primary">1.</span>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Pick a match</h3>
+                      <p className="mt-1">Choose any upcoming World Cup match before kickoff.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <span className="font-display text-lg text-primary">2.</span>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Make your call</h3>
+                      <p className="mt-1">Predict the winner, score, total goals, both teams to score, and first team to score.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <span className="font-display text-lg text-primary">3.</span>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Lock on X Layer</h3>
+                      <p className="mt-1">Once locked, your call is written onchain and cannot be edited or faked.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4">
+                    <span className="font-display text-lg text-primary">4.</span>
+                    <div>
+                      <h3 className="font-semibold text-foreground">Claim Ball IQ</h3>
+                      <p className="mt-1">When resolved, claim points for correct parts of your call and unlock rare badges.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-4 text-center">
+                  <p className="text-xs text-primary font-medium tracking-wide">
+                    KnewBall is not betting. No odds. No wagers. Just proof of football knowledge.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowHelp(false);
+                    window.dispatchEvent(new CustomEvent("knewball:connect"));
+                  }}
+                  className="mt-6 w-full rounded-full bg-primary py-3 text-center text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+                >
+                  Connect wallet to start
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -126,12 +206,12 @@ function MatchesPage() {
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
       <LiveTicker />
-      <main className={`mx-auto max-w-7xl px-6 ${isDashboard ? "py-8 md:py-10" : "py-12 md:py-16"}`}>
+      <main className={`mx-auto max-w-7xl px-4 sm:px-6 ${isDashboard ? "py-6 sm:py-8 md:py-10" : "py-8 md:py-12 lg:py-16"}`}>
         <header className={isDashboard ? "max-w-4xl" : "max-w-3xl"}>
           <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
             {isDashboard ? `Welcome back, ${profile.displayName}` : "Matchboard"}
           </span>
-          <h1 className={`mt-2 font-display leading-[0.95] tracking-tight ${isDashboard ? "text-4xl md:text-5xl" : "text-5xl md:text-7xl"}`}>
+          <h1 className={`mt-2 font-display leading-[0.95] tracking-tight ${isDashboard ? "text-3xl sm:text-4xl md:text-5xl" : "text-4xl sm:text-5xl md:text-7xl"}`}>
             {isDashboard ? "Matchboard" : "Make your call before kickoff."}
           </h1>
           <p className={`mt-4 text-muted-foreground ${isDashboard ? "text-base" : "md:text-lg"}`}>
@@ -141,13 +221,13 @@ function MatchesPage() {
           </p>
         </header>
 
-        <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-4">
+        <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:mt-6 md:grid-cols-4">
           {isDashboard ? (
             <>
               <Stat label="Ball IQ" value={totalBallIq.toLocaleString()} />
               <Stat label="Global rank" value={totalBallIq > 0 ? "#42" : "Unranked"} compact />
               <Stat label="Country rank" value={totalBallIq > 0 ? "#7" : "Pending"} compact />
-              <Stat label="Current streak" value={currentStreak(predictions).toString()} accent />
+              <Stat label="Current streak" value={currentStreak.toString()} accent />
             </>
           ) : (
             <>
@@ -248,9 +328,9 @@ function MatchesPage() {
 
 function Stat({ label, value, accent, compact }: { label: string; value: string; accent?: boolean; compact?: boolean }) {
   return (
-    <div className="bg-surface/90 px-5 py-5">
+    <div className="bg-surface/90 px-4 py-4 sm:px-5 sm:py-5">
       <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{label}</div>
-      <div className={`mt-2 font-display tracking-tight ${compact ? "text-2xl md:text-3xl" : "text-3xl md:text-4xl"} ${accent ? "text-gold" : "text-foreground"}`}>
+      <div className={`mt-1.5 font-display tracking-tight sm:mt-2 ${compact ? "text-xl sm:text-2xl md:text-3xl" : "text-2xl sm:text-3xl md:text-4xl"} ${accent ? "text-gold" : "text-foreground"}`}>
         {value}
       </div>
     </div>
@@ -325,7 +405,7 @@ function ProfileSetupPanel({
           Create your fan profile
         </h1>
         <p className="mt-4 max-w-xl text-muted-foreground md:text-lg">
-          Choose your name, country, and team so your Ball IQ, badges, and call history can be tracked.
+          Choose your display name and the country you support so your Ball IQ, badges, and call history can be tracked.
         </p>
       </div>
 
@@ -381,8 +461,4 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       {children}
     </label>
   );
-}
-
-function currentStreak(predictions: { claimed: boolean; pointsEarned?: number }[]) {
-  return predictions.filter((p) => p.claimed && (p.pointsEarned ?? 0) > 0).length;
 }

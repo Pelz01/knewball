@@ -3,11 +3,12 @@ import { Flag } from "./Flag";
 
 export function Leaderboard() {
   return (
-    <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
+    <div className="grid gap-5 lg:grid-cols-[1.5fr_1fr]">
+      {/* Global fans table */}
       <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-        <header className="flex items-center justify-between border-b border-hairline px-5 py-4">
+        <header className="flex items-center justify-between border-b border-hairline px-4 py-3 sm:px-5 sm:py-4">
           <div>
-            <h3 className="font-display text-2xl tracking-tight">Global Ball IQ — top fans</h3>
+            <h3 className="font-display text-xl tracking-tight sm:text-2xl">Global Ball IQ — top fans</h3>
             <p className="mt-1 font-mono text-[10px] tracking-[0.22em] text-muted-foreground">
               Season 01 · live ranking
             </p>
@@ -17,11 +18,12 @@ export function Leaderboard() {
           </span>
         </header>
 
-        <div className="grid grid-cols-[40px_1fr_auto_auto_auto] gap-x-4 px-5 py-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+        {/* Column headers — hide Streak + Acc on mobile */}
+        <div className="grid grid-cols-[36px_1fr_auto_auto_auto] items-center gap-x-3 px-4 py-2.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground sm:grid-cols-[40px_1fr_auto_auto_auto] sm:gap-x-4 sm:px-5 sm:py-3">
           <span>#</span>
           <span>Fan</span>
-          <span className="text-right">Streak</span>
-          <span className="text-right">Acc.</span>
+          <span className="hidden text-right sm:block">Streak</span>
+          <span className="hidden text-right sm:block">Acc.</span>
           <span className="text-right">Ball IQ</span>
         </div>
 
@@ -29,24 +31,24 @@ export function Leaderboard() {
           {TOP_FANS.map((f) => (
             <li
               key={f.rank}
-              className="grid grid-cols-[40px_1fr_auto_auto_auto] items-center gap-x-4 px-5 py-3.5 transition hover:bg-surface-elevated"
+              className="grid grid-cols-[36px_1fr_auto_auto_auto] items-center gap-x-3 px-4 py-3 transition hover:bg-surface-elevated sm:grid-cols-[40px_1fr_auto_auto_auto] sm:gap-x-4 sm:px-5 sm:py-3.5"
             >
               <span
-                className={`font-display text-lg ${
+                className={`font-display text-base sm:text-lg ${
                   f.rank <= 3 ? "text-gold" : "text-muted-foreground"
                 }`}
               >
                 {String(f.rank).padStart(2, "0")}
               </span>
-              <span className="flex items-center gap-3 min-w-0">
-                <Flag team={f.country} className="h-4 w-6 rounded-sm border border-border/20" />
-                <span className="truncate font-medium">{f.handle}</span>
+              <span className="flex min-w-0 items-center gap-2 sm:gap-3">
+                <Flag team={f.country} className="h-4 w-5 shrink-0 rounded-sm border border-border/20 sm:w-6" />
+                <span className="truncate text-sm font-medium sm:text-base">{f.handle}</span>
               </span>
-              <span className="text-right font-mono text-sm tabular-nums">{f.streak}🔥</span>
-              <span className="text-right font-mono text-sm tabular-nums text-muted-foreground">
+              <span className="hidden text-right font-mono text-sm tabular-nums sm:block">{f.streak}🔥</span>
+              <span className="hidden text-right font-mono text-sm tabular-nums text-muted-foreground sm:block">
                 {f.accuracy}%
               </span>
-              <span className="text-right font-display text-xl tracking-tight tabular-nums">
+              <span className="text-right font-display text-lg tracking-tight tabular-nums sm:text-xl">
                 {f.ballIq.toLocaleString()}
               </span>
             </li>
@@ -54,9 +56,10 @@ export function Leaderboard() {
         </ul>
       </div>
 
+      {/* Country form table */}
       <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-        <header className="border-b border-hairline px-5 py-4">
-          <h3 className="font-display text-2xl tracking-tight">Country Form</h3>
+        <header className="border-b border-hairline px-4 py-3 sm:px-5 sm:py-4">
+          <h3 className="font-display text-xl tracking-tight sm:text-2xl">Country Form</h3>
           <p className="mt-1 font-mono text-[10px] tracking-[0.22em] text-muted-foreground">
             Ball IQ per active fan · fair across nation size
           </p>
@@ -65,18 +68,18 @@ export function Leaderboard() {
           {COUNTRY_RANKS.map((c) => {
             const pct = Math.round((c.avgIq / 6500) * 100);
             return (
-              <li key={c.rank} className="px-5 py-4">
-                <div className="flex items-center gap-3">
-                  <span className="font-display text-lg text-muted-foreground tabular-nums w-7">
+              <li key={c.rank} className="px-4 py-3 sm:px-5 sm:py-4">
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <span className="w-6 font-display text-base text-muted-foreground tabular-nums sm:w-7 sm:text-lg">
                     {String(c.rank).padStart(2, "0")}
                   </span>
-                  <Flag team={c.country} className="h-5 w-7 rounded-sm border border-border/20" />
-                  <span className="font-display text-xl tracking-tight">{c.country.name}</span>
-                  <span className="ml-auto font-display text-xl text-gold tabular-nums">
+                  <Flag team={c.country} className="h-4 w-6 rounded-sm border border-border/20 sm:h-5 sm:w-7" />
+                  <span className="font-display text-lg tracking-tight sm:text-xl">{c.country.name}</span>
+                  <span className="ml-auto font-display text-lg text-gold tabular-nums sm:text-xl">
                     {c.avgIq.toLocaleString()}
                   </span>
                 </div>
-                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-background">
+                <div className="mt-2.5 h-1.5 overflow-hidden rounded-full bg-background sm:mt-3">
                   <div
                     className="h-full rounded-full bg-primary"
                     style={{ width: `${pct}%` }}

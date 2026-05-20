@@ -79,36 +79,64 @@ function Admin() {
 
 function ResolveForm({
   matchId, onResolve,
-}: { matchId: string; onResolve: (r: { homeScore: number; awayScore: number; winner: "home" | "draw" | "away"; firstGoal: "home" | "away" | "none"; btts: "yes" | "no"; overUnder: "over" | "under" }) => void }) {
+}: { matchId: string; onResolve: (r: { homeScore: number; awayScore: number; winner: "home" | "draw" | "away"; firstGoal: "home" | "away" | "none"; btts: "yes" | "no"; overUnder: "over" | "under"; isUpsetResult?: boolean; chaosOutcome?: string }) => void }) {
   const [h, setH] = useState(2);
   const [a, setA] = useState(1);
   const [fg, setFg] = useState<"home" | "away" | "none">("home");
+  const [isUpset, setIsUpset] = useState(false);
+  const [chaos, setChaos] = useState("");
   const winner: "home" | "draw" | "away" = h > a ? "home" : h < a ? "away" : "draw";
   const btts: "yes" | "no" = h > 0 && a > 0 ? "yes" : "no";
   const overUnder: "over" | "under" = h + a > 2 ? "over" : "under";
 
   return (
-    <div className="mt-5 grid gap-4 border-t border-hairline pt-5 md:grid-cols-[auto_1fr_auto] md:items-end">
-      <div className="flex items-center gap-3">
-        <Stepper label="Home" value={h} onChange={setH} />
-        <span className="font-display text-2xl text-muted-foreground">–</span>
-        <Stepper label="Away" value={a} onChange={setA} />
+    <div className="mt-5 border-t border-border/30 pt-5 flex flex-col gap-4">
+      <div className="grid gap-4 md:grid-cols-[auto_1fr_auto] md:items-end">
+        <div className="flex items-center gap-3">
+          <Stepper label="Home" value={h} onChange={setH} />
+          <span className="font-display text-2xl text-muted-foreground">–</span>
+          <Stepper label="Away" value={a} onChange={setA} />
+        </div>
+        <div className="grid grid-cols-3 gap-2 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          <Pill>Winner · {winner}</Pill>
+          <Pill>BTTS · {btts}</Pill>
+          <Pill>Goals · {overUnder} 2.5</Pill>
+        </div>
+        <div className="flex items-center gap-2">
+          <select value={fg} onChange={(e) => setFg(e.target.value as "home" | "away" | "none")} className="rounded-xl border border-border bg-background px-3 py-2 text-sm w-full">
+            <option value="home">1st goal: home</option>
+            <option value="away">1st goal: away</option>
+            <option value="none">No goal</option>
+          </select>
+        </div>
       </div>
-      <div className="grid grid-cols-3 gap-2 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-        <Pill>Winner · {winner}</Pill>
-        <Pill>BTTS · {btts}</Pill>
-        <Pill>Goals · {overUnder} 2.5</Pill>
-      </div>
-      <div className="flex items-center gap-2">
-        <select value={fg} onChange={(e) => setFg(e.target.value as "home" | "away" | "none")} className="rounded-xl border border-border bg-background px-3 py-2 text-sm">
-          <option value="home">1st goal: home</option>
-          <option value="away">1st goal: away</option>
-          <option value="none">No goal</option>
-        </select>
+
+      <div className="flex flex-wrap items-center gap-4 rounded-xl border border-border/40 bg-surface-elevated/40 p-4">
+        <label className="flex items-center gap-2 cursor-pointer font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground select-none">
+          <input
+            type="checkbox"
+            checked={isUpset}
+            onChange={(e) => setIsUpset(e.target.checked)}
+            className="h-4 w-4 rounded border-border bg-background text-primary focus:ring-primary"
+          />
+          Is Upset Result
+        </label>
+
+        <div className="flex items-center gap-2 flex-1 min-w-[200px]">
+          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground whitespace-nowrap">Chaos Outcome:</span>
+          <input
+            type="text"
+            value={chaos}
+            onChange={(e) => setChaos(e.target.value)}
+            placeholder="e.g. shock draw, penalty collapse"
+            className="flex-1 rounded-xl border border-border bg-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+          />
+        </div>
+
         <button
           type="button"
-          onClick={() => onResolve({ homeScore: h, awayScore: a, winner, firstGoal: fg, btts, overUnder })}
-          className="rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground hover:brightness-110"
+          onClick={() => onResolve({ homeScore: h, awayScore: a, winner, firstGoal: fg, btts, overUnder, isUpsetResult: isUpset, chaosOutcome: chaos || undefined })}
+          className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:brightness-110 shadow-lg shadow-primary/20 transition-all ml-auto"
         >
           Resolve
         </button>

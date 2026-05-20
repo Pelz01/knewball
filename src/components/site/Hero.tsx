@@ -20,8 +20,8 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-50" />
       <div className="pointer-events-none absolute inset-0 bg-scanline" />
 
-      <div className="relative mx-auto max-w-7xl px-6 pt-10 pb-20 md:pt-14 md:pb-28">
-        <div className="flex flex-col items-start gap-6 md:gap-8">
+      <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-8 sm:px-6 md:pb-24 md:pt-12">
+        <div className="flex flex-col items-start gap-5 md:gap-8">
           <div className="flex flex-wrap items-center gap-2">
             <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
               World Cup · Season 01
@@ -31,17 +31,17 @@ export function Hero() {
             </span>
           </div>
 
-          <h1 className="font-display text-[clamp(2.4rem,7vw,6rem)] leading-[0.92] tracking-tight">
+          <h1 className="font-display text-[clamp(2.8rem,9vw,6rem)] leading-[0.92] tracking-tight">
             <span className="block">Prove you</span>
             <span className="block">
               <span className="text-primary text-glow-green">knew</span>
               <span className="text-muted-foreground/40"> · </span>
               ball
             </span>
-            <span className="block text-muted-foreground/70">before kickoff.</span>
+            <span className="block text-white">before kickoff.</span>
           </h1>
 
-          <p className="max-w-xl text-base text-muted-foreground md:text-lg">
+          <p className="max-w-xl text-sm text-muted-foreground sm:text-base md:text-lg">
             Lock your World Cup calls onchain. Earn{" "}
             <span className="font-semibold text-gold">Ball IQ</span> when you're right. Build
             streaks. Climb your country. Become the fan who saw it coming.
@@ -50,24 +50,25 @@ export function Hero() {
           <div className="flex flex-wrap items-center gap-3">
             <Link
               to="/matches"
-              className="group inline-flex items-center gap-2.5 rounded-full bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+              className="group inline-flex items-center gap-2.5 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 sm:px-6 sm:py-3.5"
             >
               Start predicting
               <span aria-hidden className="text-base transition group-hover:translate-x-0.5">→</span>
             </Link>
             <Link
               to="/leaderboard"
-              className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-6 py-3.5 text-sm font-semibold text-foreground transition hover:bg-surface-elevated"
+              className="inline-flex items-center gap-2 rounded-full border border-border bg-surface/70 px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-surface-elevated sm:px-6 sm:py-3.5"
             >
               View leaderboard
             </Link>
           </div>
 
-          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
+          <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
             football takes, verified onchain.
           </p>
 
-          <dl className="mt-6 grid w-full grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:max-w-3xl md:grid-cols-4">
+          {/* Stats — 2-col on mobile, 4-col on md+ */}
+          <dl className="mt-2 grid w-full grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:max-w-3xl md:grid-cols-4">
             <Stat label="Calls locked" value="412,884" />
             <Stat label="Live fans" value="58,210" />
             <Stat label="Countries" value="48" />
@@ -89,12 +90,12 @@ function Stat({
   accent?: "gold" | "green";
 }) {
   return (
-    <div className="bg-surface/90 px-5 py-5 backdrop-blur-md">
+    <div className="bg-surface/90 px-4 py-4 backdrop-blur-md sm:px-5 sm:py-5">
       <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
         {label}
       </div>
       <div
-        className={`mt-2 font-display text-3xl tracking-tight md:text-4xl ${
+        className={`mt-1.5 font-display text-2xl tracking-tight sm:mt-2 sm:text-3xl md:text-4xl ${
           accent === "gold" ? "text-gold" : "text-foreground"
         }`}
       >
