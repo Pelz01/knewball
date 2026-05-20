@@ -4,6 +4,7 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { OnboardingModal } from "@/components/site/OnboardingModal";
 import { MATCHES, type Match, BADGES, BADGE_GROUPS } from "@/lib/match-data";
+import { BadgeIcon } from "@/components/site/BadgeIcon";
 import { Flag } from "@/components/site/Flag";
 import {
   useStore, describePrediction, shortAddress,
@@ -422,11 +423,6 @@ function FormPanel({
         )}
       </div>
 
-      {/* Anti-betting Note */}
-      <div className="mt-4 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-xs text-muted-foreground leading-relaxed">
-        <span className="font-semibold text-primary">KnewBall is not betting.</span> No odds. No wagers. Just proof of football knowledge.
-      </div>
-
       <div className="mt-6 rounded-2xl border border-hairline bg-background p-5">
         <span className="font-sans text-xs font-semibold uppercase tracking-wider text-primary">Your call</span>
         <ul className="mt-2 grid gap-1 text-sm md:grid-cols-2">
@@ -661,7 +657,7 @@ function ClaimCelebration({
                     <div className="grid gap-3 sm:grid-cols-2">
                       {cat.badges.map(badge => (
                         <div key={badge.id} className="flex items-center gap-3 rounded-xl border border-border/40 bg-surface-elevated/40 p-3 hover:border-primary/30 transition-colors">
-                          <div className="text-2xl">{badge.icon}</div>
+                          <BadgeIcon id={badge.id} className="h-6 w-6" />
                           <div>
                             <div className="font-semibold text-xs text-foreground font-display">{badge.name}</div>
                             <div className="text-[10px] text-muted-foreground">{badge.description}</div>

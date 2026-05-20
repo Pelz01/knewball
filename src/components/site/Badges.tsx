@@ -1,4 +1,5 @@
 import { BADGES } from "@/lib/match-data";
+import { BadgeIcon } from "./BadgeIcon";
 
 export function Badges() {
   return (
@@ -26,9 +27,9 @@ export function Badges() {
           >
             <div className="flex items-start justify-between">
               <div
-                className="flex h-14 w-14 items-center justify-center rounded-xl border border-border bg-background text-3xl"
+                className="flex h-14 w-14 items-center justify-center rounded-xl border border-border bg-background"
               >
-                {b.icon}
+                <BadgeIcon id={b.id} className="h-6 w-6" />
               </div>
             </div>
             <h3 className="mt-5 font-display text-2xl tracking-tight">{b.name}</h3>

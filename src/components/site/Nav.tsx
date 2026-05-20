@@ -1,4 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
+import { Award } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Logo, Wordmark } from "./Logo";
 import { OnboardingModal } from "./OnboardingModal";
@@ -81,7 +82,9 @@ export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
                 params={{ wallet }}
                 className="flex items-center gap-3 rounded-full border border-border bg-surface px-3 py-1.5 text-sm transition hover:bg-surface-elevated"
               >
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 text-xs">⚽</span>
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/15">
+                  <Award className="h-3.5 w-3.5 text-primary" />
+                </span>
                 <span className="hidden flex-col leading-tight sm:flex">
                   <span className="font-medium text-foreground">{profile.displayName}</span>
                   <span className="font-mono text-[10px] tracking-[0.18em] text-primary">

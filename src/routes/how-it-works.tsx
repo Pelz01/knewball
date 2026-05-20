@@ -22,9 +22,8 @@ function HowPage() {
             Football reputation, onchain.
           </h1>
           <p className="mt-4 text-muted-foreground md:text-lg">
-            KnewBall is a streak game, not a betting market. You make calls before kickoff.
-            Correct calls earn Ball IQ. Wrong ones break your streak. Everything is verifiable on
-            X Layer.
+            KnewBall is a streak game where you lock calls before kickoff.
+            Correct predictions earn Ball IQ, and wrong ones break your streak. Everything is written onchain and is fully verifiable on X Layer.
           </p>
         </header>
 

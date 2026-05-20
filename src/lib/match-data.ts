@@ -371,17 +371,16 @@ export interface Badge {
   icon: string;
 }
 
-// Badge names must match exactly what evaluates in store.tsx
 export const BADGES: Badge[] = [
-  { id: "first-call",      name: "First Call",      description: "User locks first prediction on X Layer",      icon: "✉️" },
-  { id: "knew-ball",        name: "Knew Ball",       description: "User gets first correct prediction",          icon: "🎯" },
-  { id: "perfect-call",     name: "Perfect Call",    description: "User gets all prediction fields correct",     icon: "🏆" },
-  { id: "score-prophet",    name: "Score Prophet",   description: "User predicts exact final score",             icon: "🔮" },
-  { id: "first-blood",      name: "First Blood",     description: "User predicts first team to score",           icon: "⚡" },
-  { id: "hot-foot",         name: "Hot Foot",        description: "User gets 3 correct winner calls in a row",   icon: "🔥" },
-  { id: "upset-hunter",     name: "Upset Hunter",    description: "User correctly predicts underdog win",        icon: "🏹" },
-  { id: "chaos-merchant",   name: "Chaos Merchant",  description: "You saw the madness coming",                  icon: "🌀" },
-  { id: "country-captain",  name: "Country Captain", description: "User enters top 10 for their country",        icon: "👑" },
+  { id: "first-call",      name: "First Call",      description: "User locks first prediction on X Layer",      icon: "mail" },
+  { id: "knew-ball",        name: "Knew Ball",       description: "User gets first correct prediction",          icon: "target" },
+  { id: "perfect-call",     name: "Perfect Call",    description: "User gets all prediction fields correct",     icon: "trophy" },
+  { id: "score-prophet",    name: "Score Prophet",   description: "User predicts exact final score",             icon: "sparkles" },
+  { id: "first-blood",      name: "First Blood",     description: "User predicts first team to score",           icon: "zap" },
+  { id: "hot-foot",         name: "Hot Foot",        description: "User gets 3 correct winner calls in a row",   icon: "flame" },
+  { id: "upset-hunter",     name: "Upset Hunter",    description: "User correctly predicts underdog win",        icon: "shield" },
+  { id: "chaos-merchant",   name: "Chaos Merchant",  description: "You saw the madness coming",                  icon: "shuffle" },
+  { id: "country-captain",  name: "Country Captain", description: "User enters top 10 for their country",        icon: "crown" },
 ];
 
 export const BADGE_GROUPS = {

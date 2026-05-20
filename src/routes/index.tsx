@@ -96,8 +96,8 @@ function Index() {
 const PILLARS = [
   {
     n: "01",
-    title: "Reputation, not betting",
-    body: "No odds, no pools, no risk of capital. Your record is your reputation. Wrong calls cost streak, not money.",
+    title: "Pure Reputation",
+    body: "Your record is your reputation. Climb the leaderboard based on your football knowledge, and earn badges for your streak.",
   },
   {
     n: "02",

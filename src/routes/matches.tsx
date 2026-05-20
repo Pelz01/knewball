@@ -176,12 +176,6 @@ function MatchesPage() {
                   </div>
                 </div>
 
-                <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-4 text-center">
-                  <p className="text-xs text-primary font-medium tracking-wide">
-                    KnewBall is not betting. No odds. No wagers. Just proof of football knowledge.
-                  </p>
-                </div>
-
                 <button
                   type="button"
                   onClick={() => {

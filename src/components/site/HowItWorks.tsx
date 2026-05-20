@@ -7,7 +7,7 @@ const STEPS = [
   {
     n: "02",
     title: "Make your calls",
-    body: "Winner, correct score, over/under, BTTS, first to score. No odds. No betting. Just football reads.",
+    body: "Predict the winner, correct score, over/under goals, BTTS, and first team to score.",
   },
   {
     n: "03",

@@ -1,3 +1,6 @@
+import { Flag } from "./Flag";
+import { TEAMS } from "@/lib/match-data";
+
 export function ProofCard() {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border bg-surface p-6 md:p-10">
@@ -35,15 +38,15 @@ export function ProofCard() {
               <span className="rounded-full bg-gold/15 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.24em] text-gold">
                 Called it · pre-kickoff
               </span>
-              <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-                <div className="text-right">
-                  <div aria-hidden className="text-3xl">🇲🇦</div>
-                  <div className="font-display text-2xl tracking-tight">Morocco</div>
+              <div className="mt-5 grid grid-cols-[1.2fr_auto_1.2fr] items-center gap-3">
+                <div className="flex flex-col items-center">
+                  <Flag team={TEAMS.MAR} className="h-6 w-9 rounded shadow-sm border border-border/20 mb-1" />
+                  <div className="font-display text-xl tracking-tight text-center">Morocco</div>
                 </div>
-                <div className="font-display text-3xl text-gold">2 — 1</div>
-                <div>
-                  <div aria-hidden className="text-3xl">🇵🇹</div>
-                  <div className="font-display text-2xl tracking-tight">Portugal</div>
+                <div className="font-display text-2xl text-gold">2 — 1</div>
+                <div className="flex flex-col items-center">
+                  <Flag team={TEAMS.POR} className="h-6 w-9 rounded shadow-sm border border-border/20 mb-1" />
+                  <div className="font-display text-xl tracking-tight text-center">Portugal</div>
                 </div>
               </div>
               <p className="mt-6 text-center text-sm text-foreground">
@@ -55,7 +58,7 @@ export function ProofCard() {
             <div className="grid grid-cols-3 gap-px border-t border-hairline bg-border text-center">
               {[
                 ["Ball IQ", "+820", "gold"],
-                ["Streak", "9 🔥", "white"],
+                ["Streak", "9", "white"],
                 ["Locked", "T-02:14:08", "white"],
               ].map(([k, v, c]) => (
                 <div key={k} className="bg-surface px-3 py-4">

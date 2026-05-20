@@ -49,7 +49,7 @@ export function Footer() {
 
         <div className="mt-14 flex flex-col items-start justify-between gap-3 border-t border-hairline pt-6 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground sm:flex-row sm:items-center">
           <span>© Knewball · 2026</span>
-          <span>Not a betting product · Reputation only</span>
+          <span>Reputation and onchain bragging rights only</span>
         </div>
       </div>
     </footer>

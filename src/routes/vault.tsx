@@ -3,6 +3,7 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { BADGES, type Badge } from "@/lib/match-data";
 import { useStore } from "@/lib/store";
+import { BadgeIcon } from "@/components/site/BadgeIcon";
 
 export const Route = createFileRoute("/vault")({
   component: VaultPage,
@@ -89,8 +90,8 @@ function BadgeCard({ badge, owned }: { badge: Badge; owned: boolean }) {
   return (
     <article className={`group relative overflow-hidden rounded-2xl border bg-surface p-6 transition hover:border-primary/40 ${owned ? "border-primary/30" : "border-border opacity-60"}`}>
       <div className="flex items-start justify-between">
-        <div className={`flex h-14 w-14 items-center justify-center rounded-xl border bg-background text-2xl ${owned ? "border-primary/40 text-primary" : "border-border text-muted-foreground"}`}>
-          {badge.icon}
+        <div className={`flex h-14 w-14 items-center justify-center rounded-xl border bg-background ${owned ? "border-primary/40 text-primary" : "border-border text-muted-foreground"}`}>
+          <BadgeIcon id={badge.id} className="h-6 w-6" />
         </div>
       </div>
       <h3 className="mt-5 font-display text-xl leading-tight tracking-tight">{badge.name}</h3>

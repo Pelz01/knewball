@@ -1,5 +1,6 @@
 import { TOP_FANS, COUNTRY_RANKS } from "@/lib/match-data";
 import { Flag } from "./Flag";
+import { Flame } from "lucide-react";
 
 export function Leaderboard() {
   return (
@@ -44,7 +45,9 @@ export function Leaderboard() {
                 <Flag team={f.country} className="h-4 w-5 shrink-0 rounded-sm border border-border/20 sm:w-6" />
                 <span className="truncate text-sm font-medium sm:text-base">{f.handle}</span>
               </span>
-              <span className="hidden text-right font-mono text-sm tabular-nums sm:block">{f.streak}🔥</span>
+              <span className="hidden items-center justify-end gap-1 font-mono text-sm tabular-nums sm:inline-flex">
+                {f.streak} <Flame className="h-3.5 w-3.5 text-primary" />
+              </span>
               <span className="hidden text-right font-mono text-sm tabular-nums text-muted-foreground sm:block">
                 {f.accuracy}%
               </span>

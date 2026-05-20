@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Gamepad2 } from "lucide-react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { BADGES, MATCHES, TEAMS, TOP_FANS, type Team } from "@/lib/match-data";
 import { Flag } from "@/components/site/Flag";
 import { useStore, shortAddress, matchById, describePrediction } from "@/lib/store";
+import { BadgeIcon } from "@/components/site/BadgeIcon";
 
 export const Route = createFileRoute("/profile/$wallet")({
   component: ProfileByWallet,
@@ -96,8 +98,8 @@ function ProfileByWallet() {
               <div className="relative overflow-hidden rounded-2xl border border-border bg-background p-8 text-center">
                 <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-20" />
                 <div className="relative flex flex-col items-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface border border-border text-primary text-2xl mb-4">
-                    ⚽
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface border border-border text-primary mb-4">
+                    <Gamepad2 className="h-7 w-7 text-primary" />
                   </div>
                   <h3 className="font-display text-2xl tracking-tight text-foreground">No calls locked yet</h3>
                   <p className="mt-2 max-w-sm text-sm text-muted-foreground">
@@ -167,8 +169,8 @@ function ProfileByWallet() {
                       }`}
                     >
                       <div className="flex items-center justify-between">
-                        <div className={`text-2xl filter ${hasBadge ? "" : "grayscale"}`}>
-                          {b.icon}
+                        <div className={`flex items-center ${hasBadge ? "" : "opacity-50"}`}>
+                          <BadgeIcon id={b.id} className="h-5 w-5" />
                         </div>
                         {!hasBadge && (
                           <span className="font-sans text-[8px] font-bold uppercase tracking-wider text-muted-foreground bg-surface px-1.5 py-0.5 rounded border border-border">
