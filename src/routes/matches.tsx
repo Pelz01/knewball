@@ -4,8 +4,8 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { MatchCard } from "@/components/site/MatchCard";
 import { LiveTicker } from "@/components/site/LiveTicker";
-import { MATCHES } from "@/lib/match-data";
-import { useStore, matchById } from "@/lib/store";
+import { MATCHES, TEAMS } from "@/lib/match-data";
+import { useStore, matchById, shortAddress } from "@/lib/store";
 
 export const Route = createFileRoute("/matches")({
   component: MatchesPage,
@@ -13,7 +13,7 @@ export const Route = createFileRoute("/matches")({
 
 function MatchesPage() {
   const [tab, setTab] = useState<"live" | "past">("live");
-  const { unclaimed, predictions, claimPrediction } = useStore();
+  const { wallet, profile, totalBallIq, unclaimed, predictions, claimPrediction, createProfile } = useStore();
   const matchRoute = useMatchRoute();
   const childMatch = matchRoute({ to: "/matches/$matchId", fuzzy: true });
 
@@ -26,26 +26,56 @@ function MatchesPage() {
   const callsLocked = MATCHES.reduce((s, m) => s + m.callsLocked, 0);
   const ballIqClaimed = predictions.reduce((s, p) => s + (p.pointsEarned ?? 0), 0) + 42_900;
 
+  if (wallet && !profile) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Nav />
+        <LiveTicker />
+        <main className="mx-auto max-w-5xl px-6 py-10 md:py-14">
+          <ProfileSetupPanel wallet={wallet} onCreate={createProfile} />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const isDashboard = !!profile;
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
       <LiveTicker />
-      <main className="mx-auto max-w-7xl px-6 py-12 md:py-16">
-        <header className="max-w-3xl">
-          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">Matchboard</span>
-          <h1 className="mt-2 font-display text-5xl leading-[0.95] tracking-tight md:text-7xl">
-            Make your call before kickoff.
+      <main className={`mx-auto max-w-7xl px-6 ${isDashboard ? "py-8 md:py-10" : "py-12 md:py-16"}`}>
+        <header className={isDashboard ? "max-w-4xl" : "max-w-3xl"}>
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
+            {isDashboard ? `Welcome back, ${profile.displayName}` : "Matchboard"}
+          </span>
+          <h1 className={`mt-2 font-display leading-[0.95] tracking-tight ${isDashboard ? "text-4xl md:text-5xl" : "text-5xl md:text-7xl"}`}>
+            {isDashboard ? "Matchboard" : "Make your call before kickoff."}
           </h1>
-          <p className="mt-4 text-muted-foreground md:text-lg">
-            Lock World Cup predictions on X Layer and prove you knew ball when the result lands.
+          <p className={`mt-4 text-muted-foreground ${isDashboard ? "text-base" : "md:text-lg"}`}>
+            {isDashboard
+              ? "Make your calls, claim Ball IQ, and climb the table."
+              : "Lock World Cup predictions on X Layer and prove you knew ball when the result lands."}
           </p>
         </header>
 
-        <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-4">
-          <Stat label="Calls locked" value={callsLocked.toLocaleString()} />
-          <Stat label="Ball IQ claimed" value={ballIqClaimed.toLocaleString()} />
-          <Stat label="Active fans" value="58,210" />
-          <Stat label="Countries ranked" value="48" accent />
+        <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:grid-cols-4">
+          {isDashboard ? (
+            <>
+              <Stat label="Ball IQ" value={totalBallIq.toLocaleString()} />
+              <Stat label="Global rank" value={totalBallIq > 0 ? "#42" : "Unranked"} />
+              <Stat label="Country rank" value={totalBallIq > 0 ? "#7" : "Pending"} />
+              <Stat label="Current streak" value={currentStreak(predictions).toString()} accent />
+            </>
+          ) : (
+            <>
+              <Stat label="Calls locked" value={callsLocked.toLocaleString()} />
+              <Stat label="Ball IQ claimed" value={ballIqClaimed.toLocaleString()} />
+              <Stat label="Active fans" value="58,210" />
+              <Stat label="Countries ranked" value="48" accent />
+            </>
+          )}
         </dl>
 
         {/* Claim available */}
@@ -88,7 +118,7 @@ function MatchesPage() {
         )}
 
         {/* Tabs */}
-        <div className="mt-14 mb-6 flex items-center gap-2 border-b border-hairline">
+        <div className={`${isDashboard ? "mt-8" : "mt-14"} mb-6 flex items-center gap-2 border-b border-hairline`}>
           <Tab active={tab === "live"} onClick={() => setTab("live")}>
             Live &amp; Upcoming
             <span className="ml-2 font-mono text-[10px] text-muted-foreground">{live.length + upcoming.length}</span>
@@ -190,4 +220,99 @@ function Section({ title, caption, children }: { title: string; caption: string;
 
 function Grid({ children }: { children: React.ReactNode }) {
   return <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{children}</div>;
+}
+
+function ProfileSetupPanel({
+  wallet,
+  onCreate,
+}: {
+  wallet: string;
+  onCreate: (p: { displayName: string; country: string; favoriteTeam: string }) => void;
+}) {
+  const [name, setName] = useState("");
+  const [country, setCountry] = useState("ARG");
+  const [team, setTeam] = useState("BRA");
+  const teamOptions = Object.values(TEAMS);
+
+  return (
+    <section className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
+      <div className="pt-2">
+        <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
+          Wallet connected · {shortAddress(wallet)}
+        </span>
+        <h1 className="mt-3 max-w-3xl font-display text-5xl leading-[0.95] tracking-tight md:text-6xl">
+          Create your fan profile
+        </h1>
+        <p className="mt-4 max-w-xl text-muted-foreground md:text-lg">
+          Choose your name, country, and team so your Ball IQ, badges, and call history can be tracked.
+        </p>
+      </div>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (!name.trim()) return;
+          onCreate({ displayName: name.trim(), country, favoriteTeam: team });
+        }}
+        className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6"
+      >
+        <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-40" />
+        <div className="relative space-y-4">
+          <Field label="Display name">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={24}
+              placeholder="@pelz0x"
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+            />
+          </Field>
+          <Field label="Country">
+            <select
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+            >
+              {teamOptions.map((t) => (
+                <option key={t.code} value={t.code}>{t.flag} {t.name}</option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Favorite team">
+            <select
+              value={team}
+              onChange={(e) => setTeam(e.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+            >
+              {teamOptions.map((t) => (
+                <option key={t.code} value={t.code}>{t.flag} {t.name}</option>
+              ))}
+            </select>
+          </Field>
+          <button
+            type="submit"
+            disabled={!name.trim()}
+            className="w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:bg-surface-elevated disabled:text-muted-foreground"
+          >
+            Create profile
+          </button>
+        </div>
+      </form>
+    </section>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function currentStreak(predictions: { claimed: boolean; pointsEarned?: number }[]) {
+  return predictions.filter((p) => p.claimed && (p.pointsEarned ?? 0) > 0).length;
 }

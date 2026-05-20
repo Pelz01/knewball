@@ -5,6 +5,11 @@ import { OnboardingModal } from "./OnboardingModal";
 import { useStore, shortAddress } from "@/lib/store";
 
 const appLinks = [
+  { to: "/matches", label: "Matchboard" },
+  { to: "/leaderboard", label: "Leaderboard" },
+] as const;
+
+const publicLinks = [
   { to: "/matches", label: "Matches" },
   { to: "/leaderboard", label: "Leaderboard" },
   { to: "/how-it-works", label: "How it works" },
@@ -25,7 +30,7 @@ export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
 
         {variant === "app" && (
           <nav className="hidden items-center gap-1 md:flex">
-            {appLinks.map((l) => (
+            {(profile ? appLinks : publicLinks).map((l) => (
               <Link
                 key={l.to}
                 to={l.to}
@@ -70,7 +75,7 @@ export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
                   </span>
                 </span>
                 <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground sm:hidden">
-                  {shortAddress(wallet)}
+                  {profile.displayName} · {totalBallIq.toLocaleString()} IQ
                 </span>
               </Link>
               <button
@@ -82,13 +87,11 @@ export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
               </button>
             </div>
           ) : wallet ? (
-            <button
-              type="button"
-              onClick={() => setOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary transition hover:bg-primary/15"
+            <span
+              className="inline-flex items-center rounded-full border border-border bg-surface px-4 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground"
             >
-              Create profile
-            </button>
+              {shortAddress(wallet)}
+            </span>
           ) : (
             <button
               type="button"
