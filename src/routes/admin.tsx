@@ -4,6 +4,7 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { MATCHES } from "@/lib/match-data";
 import { useStore } from "@/lib/store";
+import { Flag } from "@/components/site/Flag";
 
 export const Route = createFileRoute("/admin")({
   component: Admin,
@@ -32,7 +33,7 @@ function Admin() {
               <li key={m.id} className="rounded-2xl border border-border bg-surface p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl">{m.home.flag}</span>
+                    <Flag team={m.home} className="h-6 w-9 rounded border border-border/20" />
                     <div>
                       <div className="font-display text-2xl tracking-tight">
                         {m.home.name} vs {m.away.name}
@@ -41,7 +42,7 @@ function Admin() {
                         {m.group} · {new Date(m.kickoff).toLocaleString()}
                       </div>
                     </div>
-                    <span className="text-2xl">{m.away.flag}</span>
+                    <Flag team={m.away} className="h-6 w-9 rounded border border-border/20" />
                   </div>
                   {r ? (
                     <span className="rounded-full bg-primary/15 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-primary">

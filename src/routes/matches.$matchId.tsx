@@ -4,6 +4,7 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { OnboardingModal } from "@/components/site/OnboardingModal";
 import { MATCHES, type Match } from "@/lib/match-data";
+import { Flag } from "@/components/site/Flag";
 import {
   useStore, describePrediction, shortAddress,
   type DraftPrediction, type Prediction, type MatchResult,
@@ -261,7 +262,7 @@ function TeamBig({ team, align, score }: { team: Match["home"]; align: "left" | 
           <div className="font-display text-3xl leading-none tracking-tight md:text-4xl">{team.name}</div>
           <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">{team.code}</div>
         </div>
-        <span aria-hidden className="text-5xl leading-none md:text-6xl">{team.flag}</span>
+        <Flag team={team} className="h-12 w-[72px] rounded-md shadow-sm border border-border/20" />
       </div>
       {align === "right" && typeof score === "number" && (
         <div className="font-display text-6xl tabular-nums leading-none md:text-7xl">{score}</div>
@@ -278,29 +279,29 @@ function CallButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`relative overflow-hidden rounded-2xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
+      className={`relative overflow-hidden rounded-xl border p-3 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
         active
-          ? "border-primary bg-primary/10 ring-pitch"
-          : "border-border bg-background hover:border-primary/40 hover:bg-surface-elevated"
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border bg-background text-foreground hover:border-primary/30 hover:bg-surface-elevated"
       }`}
     >
-      <div className="flex items-baseline justify-between">
-        <span className="font-display text-2xl tracking-tight">{label}</span>
-        {active && <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">picked</span>}
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-display text-base font-bold tracking-tight">{label}</span>
+        {active && <span className="shrink-0 rounded bg-primary-foreground/20 px-1.5 py-0.5 text-[8px] font-mono uppercase tracking-wider text-primary-foreground font-bold">picked</span>}
       </div>
-      <div className="mt-1 text-xs text-muted-foreground">{sub}</div>
+      <div className={`mt-0.5 text-[10px] leading-tight font-normal ${active ? "text-primary-foreground/75" : "text-muted-foreground"}`}>{sub}</div>
     </button>
   );
 }
 
 function ScoreStepper({ label, value, onChange, disabled }: { label: string; value: number; onChange: (v: number) => void; disabled?: boolean }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-border bg-background p-3">
-      <span className="ml-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{label}</span>
-      <div className="flex items-center gap-2">
-        <button type="button" disabled={disabled || value === 0} onClick={() => onChange(Math.max(0, value - 1))} className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-foreground transition hover:border-primary/40 disabled:opacity-30">−</button>
-        <span className="w-6 text-center font-display text-xl tabular-nums">{value}</span>
-        <button type="button" disabled={disabled || value === 9} onClick={() => onChange(Math.min(9, value + 1))} className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-foreground transition hover:border-primary/40 disabled:opacity-30">+</button>
+    <div className="flex items-center justify-between rounded-xl border border-border bg-background px-4 py-2.5">
+      <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-3">
+        <button type="button" disabled={disabled || value === 0} onClick={() => onChange(Math.max(0, value - 1))} className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-foreground transition hover:border-primary/30 disabled:opacity-20 hover:bg-surface-elevated">−</button>
+        <span className="w-5 text-center font-display text-lg font-bold tabular-nums">{value}</span>
+        <button type="button" disabled={disabled || value === 9} onClick={() => onChange(Math.min(9, value + 1))} className="flex h-7 w-7 items-center justify-center rounded-full border border-border text-foreground transition hover:border-primary/30 disabled:opacity-20 hover:bg-surface-elevated">+</button>
       </div>
     </div>
   );
@@ -359,45 +360,45 @@ function FormPanel({
           <p className="mt-1 text-sm text-muted-foreground">Lock before kickoff. Once it's on X Layer, it cannot be edited.</p>
         </div>
         {hasDraft && (
-          <button type="button" onClick={onClearDraft} className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={onClearDraft} className="font-sans text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground">
             Clear draft
           </button>
         )}
       </div>
 
-      <PickGroup label="Winner">
+      <PickGroup label="Winner" cols={3}>
         <CallButton label={match.home.code} sub={`${match.home.name} win`} active={winner === "home"} onClick={() => setWinner("home")} disabled={disabled} />
         <CallButton label="X" sub="Draw" active={winner === "draw"} onClick={() => setWinner("draw")} disabled={disabled} />
         <CallButton label={match.away.code} sub={`${match.away.name} win`} active={winner === "away"} onClick={() => setWinner("away")} disabled={disabled} />
       </PickGroup>
 
-      <PickGroup label="Correct score · +200 IQ">
-        <div className="col-span-3 grid grid-cols-2 gap-3">
+      <PickGroup label="Correct score · +200 IQ" cols={2}>
+        {/* cols container */}
           <ScoreStepper label={match.home.code} value={scoreH} onChange={setScoreH} disabled={disabled} />
           <ScoreStepper label={match.away.code} value={scoreA} onChange={setScoreA} disabled={disabled} />
-        </div>
+        {/* end cols container */}
       </PickGroup>
 
-      <PickGroup label="Total goals">
+      <PickGroup label="Total goals" cols={2}>
         <CallButton label="Over" sub="2.5+ goals" active={overUnder === "over"} onClick={() => setOverUnder("over")} disabled={disabled} />
         <CallButton label="Under" sub="Up to 2 goals" active={overUnder === "under"} onClick={() => setOverUnder("under")} disabled={disabled} />
-        <div />
+        {/* spacer deleted */}
       </PickGroup>
 
-      <PickGroup label="Both teams to score">
+      <PickGroup label="Both teams to score" cols={2}>
         <CallButton label="Yes" sub="Both find net" active={btts === "yes"} onClick={() => setBtts("yes")} disabled={disabled} />
         <CallButton label="No" sub="At least one clean sheet" active={btts === "no"} onClick={() => setBtts("no")} disabled={disabled} />
-        <div />
+        {/* spacer deleted */}
       </PickGroup>
 
-      <PickGroup label="First team to score">
+      <PickGroup label="First team to score" cols={3}>
         <CallButton label={match.home.code} sub="Home scores first" active={firstGoal === "home"} onClick={() => setFirstGoal("home")} disabled={disabled} />
         <CallButton label={match.away.code} sub="Away scores first" active={firstGoal === "away"} onClick={() => setFirstGoal("away")} disabled={disabled} />
         <CallButton label="0-0" sub="No goal" active={firstGoal === "none"} onClick={() => setFirstGoal("none")} disabled={disabled} />
       </PickGroup>
 
       <div className="mt-8 rounded-2xl border border-hairline bg-background p-5">
-        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Your call</span>
+        <span className="font-sans text-xs font-semibold uppercase tracking-wider text-primary">Your call</span>
         <ul className="mt-2 grid gap-1 text-sm md:grid-cols-2">
           {describePrediction({ matchId: match.id, winner, homeScore: scoreH, awayScore: scoreA, overUnder, btts, firstGoal, createdAt: 0 }, match)
             .map((l) => <li key={l}>{l}</li>)}
@@ -426,11 +427,11 @@ function FormPanel({
   );
 }
 
-function PickGroup({ label, children }: { label: string; children: React.ReactNode }) {
+function PickGroup({ label, cols = 3, children }: { label: string; cols?: 2 | 3; children: React.ReactNode }) {
   return (
     <div className="mt-6">
-      <div className="mb-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{label}</div>
-      <div className="grid grid-cols-3 gap-3">{children}</div>
+      <div className="mb-2 font-sans text-sm font-semibold text-muted-foreground">{label}</div>
+      <div className={`grid gap-3 ${cols === 2 ? "grid-cols-2" : "grid-cols-3"}`}>{children}</div>
     </div>
   );
 }

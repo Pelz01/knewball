@@ -51,38 +51,43 @@ export async function connectXLayerWallet() {
     throw new Error("No EVM wallet found. Install OKX Wallet or another EIP-1193 wallet.");
   }
 
-  const accounts = await provider.request<string[]>({ method: "eth_requestAccounts" });
+  const accounts = await requestProvider<string[]>(provider, "eth_requestAccounts");
   const wallet = accounts[0];
   if (!wallet) throw new Error("Wallet did not return an account.");
 
-  await ensureXLayerNetwork(provider);
-  const chainIdHex = await provider.request<string>({ method: "eth_chainId" });
-  return { wallet, chainId: Number.parseInt(chainIdHex, 16) };
+  try {
+    await ensureXLayerNetwork(provider);
+  } catch (err) {
+    console.warn("X Layer network switch was skipped during wallet connect.", err);
+  }
+
+  try {
+    const chainIdHex = await requestProvider<string>(provider, "eth_chainId");
+    return { wallet, chainId: Number.parseInt(chainIdHex, 16) };
+  } catch {
+    return { wallet, chainId: null };
+  }
 }
 
 export async function ensureXLayerNetwork(provider = getInjectedProvider()) {
   if (!provider) throw new Error("No EVM wallet found.");
-  const chainIdHex = await provider.request<string>({ method: "eth_chainId" });
+  const chainIdHex = await requestProvider<string>(provider, "eth_chainId");
   if (chainIdHex.toLowerCase() === ACTIVE_XLAYER.chainIdHex) return;
 
   try {
-    await provider.request({
-      method: "wallet_switchEthereumChain",
-      params: [{ chainId: ACTIVE_XLAYER.chainIdHex }],
-    });
+    await requestProvider(provider, "wallet_switchEthereumChain", [{ chainId: ACTIVE_XLAYER.chainIdHex }]);
   } catch (err) {
-    const code = typeof err === "object" && err && "code" in err ? (err as { code?: number }).code : undefined;
-    if (code !== 4902) throw err;
-    await provider.request({
-      method: "wallet_addEthereumChain",
-      params: [{
+    const code = getProviderErrorCode(err);
+    if (code !== 4902 && code !== "4902") {
+      throw new Error(`Switch to ${ACTIVE_XLAYER.name} failed: ${providerErrorMessage(err)}`);
+    }
+    await requestProvider(provider, "wallet_addEthereumChain", [{
         chainId: ACTIVE_XLAYER.chainIdHex,
         chainName: ACTIVE_XLAYER.name,
         nativeCurrency: ACTIVE_XLAYER.nativeCurrency,
         rpcUrls: ACTIVE_XLAYER.rpcUrls,
         blockExplorerUrls: [ACTIVE_XLAYER.explorerUrl],
-      }],
-    });
+      }]);
   }
 }
 
@@ -104,7 +109,6 @@ export async function sendPredictionProofTransaction(args: {
     profile: args.profile ? {
       displayName: args.profile.displayName,
       country: args.profile.country,
-      favoriteTeam: args.profile.favoriteTeam,
     } : null,
     match: match ? {
       id: match.id,
@@ -125,15 +129,12 @@ export async function sendPredictionProofTransaction(args: {
   };
 
   const data = utf8ToHex(JSON.stringify(payload));
-  return provider.request<string>({
-    method: "eth_sendTransaction",
-    params: [{
+  return requestProvider<string>(provider, "eth_sendTransaction", [{
       from: args.from,
       to: args.from,
       value: "0x0",
       data,
-    }],
-  });
+    }]);
 }
 
 export function explorerTxUrl(txHash: string) {
@@ -143,4 +144,41 @@ export function explorerTxUrl(txHash: string) {
 function utf8ToHex(value: string) {
   const bytes = new TextEncoder().encode(value);
   return `0x${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
+}
+
+async function requestProvider<T = unknown>(
+  provider: Eip1193Provider,
+  method: string,
+  params?: unknown[],
+) {
+  try {
+    return await provider.request<T>({ method, params });
+  } catch (err) {
+    const next = new Error(providerErrorMessage(err)) as Error & { code?: number | string };
+    next.code = getProviderErrorCode(err);
+    throw next;
+  }
+}
+
+export function providerErrorMessage(err: unknown) {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "string") return err;
+  if (typeof err === "object" && err) {
+    const maybe = err as { message?: unknown; reason?: unknown; code?: unknown };
+    const detail = maybe.message ?? maybe.reason;
+    if (typeof detail === "string" && detail.trim()) return detail;
+    if (typeof maybe.code === "number" || typeof maybe.code === "string") return `Wallet error ${maybe.code}`;
+  }
+  return "Wallet request failed. Check that your wallet is unlocked and approve the popup.";
+}
+
+function getProviderErrorCode(err: unknown) {
+  if (typeof err === "object" && err && "code" in err) {
+    return (err as { code?: number | string }).code;
+  }
+  if (err instanceof Error) {
+    const match = err.message.match(/\b(4001|4902|-?\d{4,})\b/);
+    return match?.[1];
+  }
+  return undefined;
 }

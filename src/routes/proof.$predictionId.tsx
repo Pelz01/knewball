@@ -4,6 +4,7 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { useStore, matchById, describePrediction, shortAddress } from "@/lib/store";
 import { explorerTxUrl } from "@/lib/xlayer";
+import { Flag } from "@/components/site/Flag";
 
 export const Route = createFileRoute("/proof/$predictionId")({
   component: ProofPage,
@@ -61,7 +62,7 @@ function ProofPage() {
 
             <div className="mt-8 flex items-center justify-between gap-6 rounded-2xl border border-hairline bg-background p-6">
               <div className="flex items-center gap-3">
-                <span className="text-3xl">{match.home.flag}</span>
+                <Flag team={match.home} className="h-8 w-12 rounded shadow-sm border border-border/20" />
                 <div>
                   <div className="font-display text-2xl tracking-tight">{match.home.name}</div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{match.home.code}</div>
@@ -82,7 +83,7 @@ function ProofPage() {
                   <div className="font-display text-2xl tracking-tight">{match.away.name}</div>
                   <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{match.away.code}</div>
                 </div>
-                <span className="text-3xl">{match.away.flag}</span>
+                <Flag team={match.away} className="h-8 w-12 rounded shadow-sm border border-border/20" />
               </div>
             </div>
 

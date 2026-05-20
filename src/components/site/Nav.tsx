@@ -1,5 +1,5 @@
 import { Link, useRouter } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Logo, Wordmark } from "./Logo";
 import { OnboardingModal } from "./OnboardingModal";
 import { useStore, shortAddress } from "@/lib/store";
@@ -10,7 +10,7 @@ const appLinks = [
 ] as const;
 
 const publicLinks = [
-  { to: "/matches", label: "Matches" },
+  { to: "/matches", label: "Matchboard" },
   { to: "/leaderboard", label: "Leaderboard" },
   { to: "/how-it-works", label: "How it works" },
 ] as const;
@@ -19,6 +19,12 @@ export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
   const { wallet, profile, totalBallIq, disconnect } = useStore();
   const [open, setOpen] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    const openConnect = () => setOpen(true);
+    window.addEventListener("knewball:connect", openConnect);
+    return () => window.removeEventListener("knewball:connect", openConnect);
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -30,7 +36,7 @@ export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
 
         {variant === "app" && (
           <nav className="hidden items-center gap-1 md:flex">
-            {(profile ? appLinks : publicLinks).map((l) => (
+            {(wallet ? appLinks : publicLinks).map((l) => (
               <Link
                 key={l.to}
                 to={l.to}
@@ -40,6 +46,16 @@ export function Nav({ variant = "app" }: { variant?: "marketing" | "app" }) {
                 {l.label}
               </Link>
             ))}
+            {wallet && profile && (
+              <Link
+                to="/profile/$wallet"
+                params={{ wallet }}
+                className="rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-surface-elevated hover:text-foreground"
+                activeProps={{ className: "bg-surface-elevated text-foreground" }}
+              >
+                My Profile
+              </Link>
+            )}
           </nav>
         )}
 

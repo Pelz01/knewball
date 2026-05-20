@@ -4,7 +4,7 @@ import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { MatchCard } from "@/components/site/MatchCard";
 import { LiveTicker } from "@/components/site/LiveTicker";
-import { MATCHES, TEAMS } from "@/lib/match-data";
+import { MATCHES, WORLD_CUP_TEAMS } from "@/lib/match-data";
 import { useStore, matchById, shortAddress } from "@/lib/store";
 
 export const Route = createFileRoute("/matches")({
@@ -39,6 +39,87 @@ function MatchesPage() {
     );
   }
 
+  if (!wallet) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Nav />
+        <LiveTicker />
+        <main className="mx-auto max-w-7xl px-6 py-8 md:py-10">
+          <section className="grid gap-6 lg:grid-cols-[1fr_520px] lg:items-end">
+            <div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">Matchboard</span>
+              <h1 className="mt-2 max-w-4xl font-display text-4xl leading-[0.95] tracking-tight md:text-5xl">
+                Browse open World Cup calls.
+              </h1>
+              <p className="mt-3 max-w-2xl text-muted-foreground">
+                Connect only when you are ready to lock one.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent("knewball:connect"))}
+                  className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+                >
+                  Connect wallet
+                </button>
+                <Link to="/leaderboard" className="rounded-full border border-border bg-surface px-6 py-3 text-sm font-semibold text-foreground transition hover:bg-surface-elevated">
+                  View leaderboard
+                </Link>
+              </div>
+            </div>
+            <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border">
+              <Stat label="Calls locked" value={callsLocked.toLocaleString()} />
+              <Stat label="Ball IQ claimed" value={ballIqClaimed.toLocaleString()} compact />
+              <Stat label="Countries ranked" value="48" accent />
+              <Stat label="Open matches" value={(live.length + upcoming.length).toString()} compact />
+            </dl>
+          </section>
+
+          <section id="preview-matches" className="mt-8">
+            <div className="mb-5 flex items-baseline justify-between border-b border-hairline pb-3">
+              <div>
+                <h2 className="font-display text-3xl tracking-tight">Browse the matchboard</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Preview open matches. Connect only when you are ready to lock your call.
+                </p>
+              </div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                {live.length + upcoming.length} open
+              </span>
+            </div>
+            <div className="mb-6 flex items-center gap-2 border-b border-hairline">
+              <Tab active={tab === "live"} onClick={() => setTab("live")}>
+                Live &amp; Upcoming
+                <span className="ml-2 font-mono text-[10px] text-muted-foreground">{live.length + upcoming.length}</span>
+              </Tab>
+              <Tab active={tab === "past"} onClick={() => setTab("past")}>
+                Past Arenas
+                <span className="ml-2 font-mono text-[10px] text-muted-foreground">{finals.length}</span>
+              </Tab>
+            </div>
+            {tab === "live" ? (
+              <>
+                {live.length > 0 && (
+                  <Section title="Live now" caption={`${live.length} in progress`}>
+                    <Grid>{live.map((m) => <MatchCard key={m.id} match={m} />)}</Grid>
+                  </Section>
+                )}
+                <Section title="Open for calls" caption={`${upcoming.length} to call`}>
+                  <Grid>{upcoming.map((m) => <MatchCard key={m.id} match={m} />)}</Grid>
+                </Section>
+              </>
+            ) : (
+              <Section title="Past arenas" caption={`${finals.length} resolved`}>
+                <Grid>{finals.map((m) => <MatchCard key={m.id} match={m} />)}</Grid>
+              </Section>
+            )}
+          </section>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   const isDashboard = !!profile;
 
   return (
@@ -64,8 +145,8 @@ function MatchesPage() {
           {isDashboard ? (
             <>
               <Stat label="Ball IQ" value={totalBallIq.toLocaleString()} />
-              <Stat label="Global rank" value={totalBallIq > 0 ? "#42" : "Unranked"} />
-              <Stat label="Country rank" value={totalBallIq > 0 ? "#7" : "Pending"} />
+              <Stat label="Global rank" value={totalBallIq > 0 ? "#42" : "Unranked"} compact />
+              <Stat label="Country rank" value={totalBallIq > 0 ? "#7" : "Pending"} compact />
               <Stat label="Current streak" value={currentStreak(predictions).toString()} accent />
             </>
           ) : (
@@ -127,12 +208,14 @@ function MatchesPage() {
             Past Arenas
             <span className="ml-2 font-mono text-[10px] text-muted-foreground">{finals.length}</span>
           </Tab>
-          <Link
-            to="/admin"
-            className="ml-auto rounded-full border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground"
-          >
-            Admin
-          </Link>
+          {import.meta.env.DEV && (
+            <Link
+              to="/admin"
+              className="ml-auto rounded-full border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground"
+            >
+              Admin
+            </Link>
+          )}
         </div>
 
         {tab === "live" ? (
@@ -163,11 +246,11 @@ function MatchesPage() {
   );
 }
 
-function Stat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function Stat({ label, value, accent, compact }: { label: string; value: string; accent?: boolean; compact?: boolean }) {
   return (
     <div className="bg-surface/90 px-5 py-5">
       <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{label}</div>
-      <div className={`mt-2 font-display text-3xl tracking-tight md:text-4xl ${accent ? "text-gold" : "text-foreground"}`}>
+      <div className={`mt-2 font-display tracking-tight ${compact ? "text-2xl md:text-3xl" : "text-3xl md:text-4xl"} ${accent ? "text-gold" : "text-foreground"}`}>
         {value}
       </div>
     </div>
@@ -227,12 +310,10 @@ function ProfileSetupPanel({
   onCreate,
 }: {
   wallet: string;
-  onCreate: (p: { displayName: string; country: string; favoriteTeam: string }) => void;
+  onCreate: (p: { displayName: string; country: string }) => void;
 }) {
   const [name, setName] = useState("");
   const [country, setCountry] = useState("ARG");
-  const [team, setTeam] = useState("BRA");
-  const teamOptions = Object.values(TEAMS);
 
   return (
     <section className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
@@ -252,7 +333,7 @@ function ProfileSetupPanel({
         onSubmit={(e) => {
           e.preventDefault();
           if (!name.trim()) return;
-          onCreate({ displayName: name.trim(), country, favoriteTeam: team });
+          onCreate({ displayName: name.trim(), country });
         }}
         className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6"
       >
@@ -273,18 +354,7 @@ function ProfileSetupPanel({
               onChange={(e) => setCountry(e.target.value)}
               className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
             >
-              {teamOptions.map((t) => (
-                <option key={t.code} value={t.code}>{t.flag} {t.name}</option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Favorite team">
-            <select
-              value={team}
-              onChange={(e) => setTeam(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
-            >
-              {teamOptions.map((t) => (
+              {WORLD_CUP_TEAMS.map((t) => (
                 <option key={t.code} value={t.code}>{t.flag} {t.name}</option>
               ))}
             </select>

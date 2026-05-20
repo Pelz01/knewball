@@ -1,21 +1,5 @@
 import { BADGES } from "@/lib/match-data";
 
-const rarityRing: Record<string, string> = {
-  common: "border-border",
-  rare: "border-foreground/30",
-  legendary: "border-primary/60",
-};
-const rarityGlow: Record<string, string> = {
-  common: "",
-  rare: "",
-  legendary: "shadow-[0_0_50px_-12px_rgba(25,227,111,0.45)]",
-};
-const rarityText: Record<string, string> = {
-  common: "text-muted-foreground",
-  rare: "text-foreground",
-  legendary: "text-primary",
-};
-
 export function Badges() {
   return (
     <div>
@@ -29,8 +13,8 @@ export function Badges() {
           </h2>
         </div>
         <p className="max-w-md text-sm text-muted-foreground">
-          Every correct call leaves a mark. Unlock badges for upsets, clean sheets, hat-tricks
-          and oracle-level streaks. All collectible on X Layer.
+          Every correct call leaves a mark. Unlock badges for upsets, correct scores, and
+          first goal calls. All collectible on X Layer.
         </p>
       </div>
 
@@ -38,19 +22,14 @@ export function Badges() {
         {BADGES.map((b) => (
           <article
             key={b.id}
-            className={`group relative overflow-hidden rounded-2xl border ${rarityRing[b.rarity]} bg-surface p-6 transition hover:bg-surface-elevated ${rarityGlow[b.rarity]}`}
+            className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-6 transition hover:bg-surface-elevated"
           >
             <div className="flex items-start justify-between">
               <div
-                className={`flex h-14 w-14 items-center justify-center rounded-xl border ${rarityRing[b.rarity]} bg-background text-3xl ${rarityText[b.rarity]}`}
+                className="flex h-14 w-14 items-center justify-center rounded-xl border border-border bg-background text-3xl"
               >
                 {b.icon}
               </div>
-              <span
-                className={`font-mono text-[10px] uppercase tracking-[0.24em] ${rarityText[b.rarity]}`}
-              >
-                {b.rarity}
-              </span>
             </div>
             <h3 className="mt-5 font-display text-2xl tracking-tight">{b.name}</h3>
             <p className="mt-1 text-sm text-muted-foreground">{b.description}</p>

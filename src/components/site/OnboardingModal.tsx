@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { TEAMS } from "@/lib/match-data";
+import { WORLD_CUP_TEAMS } from "@/lib/match-data";
 import { useStore, shortAddress } from "@/lib/store";
 
 /* Modal that walks the user through:
  *  1. Connect wallet
- *  2. Create fan profile (display name, country, favorite team)
+ *  2. Create fan profile (display name and country)
  * Stays mounted while open; closes itself once profile is complete.
  */
 export function OnboardingModal({
@@ -22,7 +22,6 @@ export function OnboardingModal({
   const [pending, setPending] = useState(false);
   const [name, setName] = useState("");
   const [country, setCountry] = useState<string>("ARG");
-  const [team, setTeam] = useState<string>("BRA");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -39,8 +38,6 @@ export function OnboardingModal({
   }, [open, profile]);
 
   if (!open) return null;
-
-  const teamOptions = Object.values(TEAMS);
 
   const modal = (
     <div className="fixed inset-0 z-[9999] bg-background/80 backdrop-blur-md">
@@ -99,7 +96,7 @@ export function OnboardingModal({
             onSubmit={(e) => {
               e.preventDefault();
               if (!name.trim()) return;
-              createProfile({ displayName: name.trim(), country, favoriteTeam: team });
+              createProfile({ displayName: name.trim(), country });
             }}
           >
             <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">Step 2 / 2</span>
@@ -115,29 +112,19 @@ export function OnboardingModal({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   maxLength={24}
-                  placeholder="@pelz0x"
+                  placeholder="e.g. goat_caller"
                   className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
                 />
               </Field>
               <Field label="Country you support">
+                {/* Native select — browser renders its own popup so it won't overflow the modal */}
                 <select
                   value={country}
                   onChange={(e) => setCountry(e.target.value)}
                   className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
                 >
-                  {teamOptions.map((t) => (
-                    <option key={t.code} value={t.code}>{t.flag} {t.name}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Favorite team">
-                <select
-                  value={team}
-                  onChange={(e) => setTeam(e.target.value)}
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
-                >
-                  {teamOptions.map((t) => (
-                    <option key={t.code} value={t.code}>{t.flag} {t.name}</option>
+                  {WORLD_CUP_TEAMS.map((t) => (
+                    <option key={t.code} value={t.code}>{t.flag} {t.name} ({t.code})</option>
                   ))}
                 </select>
               </Field>

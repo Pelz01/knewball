@@ -1,4 +1,5 @@
 import { TOP_FANS, COUNTRY_RANKS } from "@/lib/match-data";
+import { Flag } from "./Flag";
 
 export function Leaderboard() {
   return (
@@ -7,11 +8,11 @@ export function Leaderboard() {
         <header className="flex items-center justify-between border-b border-hairline px-5 py-4">
           <div>
             <h3 className="font-display text-2xl tracking-tight">Global Ball IQ — top fans</h3>
-            <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+            <p className="mt-1 font-mono text-[10px] tracking-[0.22em] text-muted-foreground">
               Season 01 · live ranking
             </p>
           </div>
-          <span className="hidden rounded-full border border-border px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground sm:inline-flex">
+          <span className="hidden rounded-full border border-border px-3 py-1 font-mono text-[10px] tracking-[0.22em] text-muted-foreground sm:inline-flex">
             Updated 12s ago
           </span>
         </header>
@@ -38,9 +39,7 @@ export function Leaderboard() {
                 {String(f.rank).padStart(2, "0")}
               </span>
               <span className="flex items-center gap-3 min-w-0">
-                <span aria-hidden className="text-xl leading-none">
-                  {f.country.flag}
-                </span>
+                <Flag team={f.country} className="h-4 w-6 rounded-sm border border-border/20" />
                 <span className="truncate font-medium">{f.handle}</span>
               </span>
               <span className="text-right font-mono text-sm tabular-nums">{f.streak}🔥</span>
@@ -58,7 +57,7 @@ export function Leaderboard() {
       <div className="overflow-hidden rounded-2xl border border-border bg-surface">
         <header className="border-b border-hairline px-5 py-4">
           <h3 className="font-display text-2xl tracking-tight">Country Form</h3>
-          <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+          <p className="mt-1 font-mono text-[10px] tracking-[0.22em] text-muted-foreground">
             Ball IQ per active fan · fair across nation size
           </p>
         </header>
@@ -71,7 +70,7 @@ export function Leaderboard() {
                   <span className="font-display text-lg text-muted-foreground tabular-nums w-7">
                     {String(c.rank).padStart(2, "0")}
                   </span>
-                  <span aria-hidden className="text-xl">{c.country.flag}</span>
+                  <Flag team={c.country} className="h-5 w-7 rounded-sm border border-border/20" />
                   <span className="font-display text-xl tracking-tight">{c.country.name}</span>
                   <span className="ml-auto font-display text-xl text-gold tabular-nums">
                     {c.avgIq.toLocaleString()}

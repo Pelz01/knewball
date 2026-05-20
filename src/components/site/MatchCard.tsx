@@ -1,6 +1,7 @@
 import type { Match } from "@/lib/match-data";
 import { Link } from "@tanstack/react-router";
 import { useStore } from "@/lib/store";
+import { Flag } from "./Flag";
 
 function formatKickoff(iso: string) {
   const d = new Date(iso);
@@ -144,9 +145,7 @@ function TeamRow({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <span aria-hidden className="text-2xl leading-none">
-        {team.flag}
-      </span>
+      <Flag team={team} className="h-5 w-7 rounded-sm" />
       <div className="min-w-0 flex-1">
         <div className="font-display text-lg leading-none tracking-tight">
           {team.name}

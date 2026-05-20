@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Match } from "@/lib/match-data";
+import { Flag } from "./Flag";
 import ballImg from "@/assets/ball-macro.jpg";
 
 function useCountdown(iso: string) {
@@ -54,7 +55,7 @@ export function FeaturedMatch({ match }: { match: Match }) {
 
           <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-6">
             <div>
-              <div aria-hidden className="text-5xl leading-none">{match.home.flag}</div>
+              <Flag team={match.home} className="h-10 w-[60px] rounded shadow-sm border border-border/20" />
               <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
                 {match.home.code}
               </div>
@@ -66,7 +67,7 @@ export function FeaturedMatch({ match }: { match: Match }) {
               <div className="font-display text-2xl text-muted-foreground">vs</div>
             </div>
             <div className="text-right">
-              <div aria-hidden className="text-5xl leading-none">{match.away.flag}</div>
+              <Flag team={match.away} className="h-10 w-[60px] rounded shadow-sm border border-border/20 ml-auto" />
               <div className="mt-3 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
                 {match.away.code}
               </div>

@@ -48,7 +48,6 @@ export interface FanProfile {
   wallet: string;
   displayName: string;
   country: string; // team code
-  favoriteTeam: string; // team code
   createdAt: number;
 }
 
@@ -75,33 +74,13 @@ function load(): State {
 }
 
 function seed(): State {
-  // Seed past arenas with results so the Past Arenas tab is never empty.
   return {
     wallet: null,
     chainId: null,
     profile: null,
     drafts: {},
     predictions: [],
-    results: {
-      "m-006": {
-        matchId: "m-006",
-        homeScore: 2, awayScore: 1,
-        winner: "home", firstGoal: "home", btts: "yes", overUnder: "over",
-        resolvedAt: Date.now() - 86400000 * 2,
-      },
-      "m-007": {
-        matchId: "m-007",
-        homeScore: 1, awayScore: 0,
-        winner: "home", firstGoal: "home", btts: "no", overUnder: "under",
-        resolvedAt: Date.now() - 86400000 * 3,
-      },
-      "m-008": {
-        matchId: "m-008",
-        homeScore: 3, awayScore: 1,
-        winner: "home", firstGoal: "home", btts: "yes", overUnder: "over",
-        resolvedAt: Date.now() - 86400000 * 3,
-      },
-    },
+    results: {},
   };
 }
 

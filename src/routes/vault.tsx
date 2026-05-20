@@ -7,7 +7,7 @@ export const Route = createFileRoute("/vault")({
   component: VaultPage,
 });
 
-const OWNED = new Set(["b1", "b3", "b5", "b6"]);
+const OWNED = new Set(["knew-ball", "first-goal-caller"]);
 
 function VaultPage() {
   const owned = BADGES.filter((b) => OWNED.has(b.id));
@@ -28,7 +28,6 @@ function VaultPage() {
           <div className="flex gap-2">
             <Stat label="Owned" value={owned.length} />
             <Stat label="Locked" value={locked.length} />
-            <Stat label="Rarity score" value="2,140" />
           </div>
         </header>
 
@@ -76,20 +75,12 @@ function Stat({ label, value }: { label: string; value: string | number }) {
 }
 
 function BadgeCard({ badge, owned }: { badge: Badge; owned: boolean }) {
-  const rarityTone =
-    badge.rarity === "legendary" ? "text-primary border-primary/40 bg-primary/10" :
-    badge.rarity === "rare" ? "text-foreground border-border bg-background" :
-    "text-muted-foreground border-hairline bg-background";
-
   return (
-    <article className={`group relative overflow-hidden rounded-2xl border bg-surface p-6 transition hover:border-primary/40 ${owned ? "" : "opacity-60"}`}>
+    <article className={`group relative overflow-hidden rounded-2xl border bg-surface p-6 transition hover:border-primary/40 ${owned ? "border-primary/30" : "border-border opacity-60"}`}>
       <div className="flex items-start justify-between">
-        <div className={`flex h-14 w-14 items-center justify-center rounded-xl border text-2xl ${rarityTone}`}>
+        <div className={`flex h-14 w-14 items-center justify-center rounded-xl border bg-background text-2xl ${owned ? "border-primary/40 text-primary" : "border-border text-muted-foreground"}`}>
           {badge.icon}
         </div>
-        <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] ${rarityTone}`}>
-          {badge.rarity}
-        </span>
       </div>
       <h3 className="mt-5 font-display text-xl leading-tight tracking-tight">{badge.name}</h3>
       <p className="mt-2 text-sm text-muted-foreground">{badge.description}</p>

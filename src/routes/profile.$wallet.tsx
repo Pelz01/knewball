@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { BADGES, MATCHES, TEAMS, TOP_FANS, type Team } from "@/lib/match-data";
+import { Flag } from "@/components/site/Flag";
 import { useStore, shortAddress, matchById, describePrediction } from "@/lib/store";
 
 export const Route = createFileRoute("/profile/$wallet")({
@@ -11,18 +12,19 @@ export const Route = createFileRoute("/profile/$wallet")({
 function ProfileByWallet() {
   const { wallet: pageWallet } = Route.useParams();
   const { wallet, profile, predictions, results, totalBallIq } = useStore();
-  const isMe = wallet === pageWallet;
+  const pageWalletLower = pageWallet?.toLowerCase() || "";
+  const isMe = !!(wallet && pageWallet && wallet.toLowerCase() === pageWalletLower);
 
   // Public-facing profile: own profile when connected, otherwise show a
   // seeded fan persona so shared profile links never look empty.
-  const persona = !isMe ? TOP_FANS.find((f) => f.handle.toLowerCase().includes(pageWallet.slice(2, 6).toLowerCase())) ?? TOP_FANS[0] : null;
+  const persona = !isMe ? (TOP_FANS.find((f) => pageWalletLower.length >= 6 && f.handle.toLowerCase().includes(pageWalletLower.slice(2, 6))) ?? TOP_FANS[0]) : null;
 
   const displayName = isMe ? profile?.displayName ?? "fan.knewball" : persona!.handle;
   const country: Team = isMe
     ? (Object.values(TEAMS).find((t) => t.code === profile?.country) ?? TEAMS.ARG)
     : persona!.country;
 
-  const myPreds = predictions.filter((p) => p.wallet === pageWallet);
+  const myPreds = predictions.filter((p) => p.wallet && p.wallet.toLowerCase() === pageWalletLower);
   const ballIq = isMe
     ? totalBallIq
     : persona!.ballIq;
@@ -47,8 +49,8 @@ function ProfileByWallet() {
           <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-40" />
           <div className="relative flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
             <div className="flex items-center gap-5">
-              <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-border bg-background text-4xl">
-                {country.flag}
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-border bg-background overflow-hidden p-2">
+                <Flag team={country} className="h-full w-full rounded" />
               </div>
               <div>
                 <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
@@ -56,7 +58,7 @@ function ProfileByWallet() {
                 </span>
                 <h1 className="mt-1 font-display text-4xl leading-[1] tracking-tight md:text-6xl">{displayName}</h1>
                 <p className="mt-2 font-mono text-xs text-muted-foreground">
-                  {country.name} · wallet {shortAddress(pageWallet)}
+                  {country.name} · wallet {pageWallet ? shortAddress(pageWallet) : ""}
                 </p>
               </div>
             </div>
@@ -91,14 +93,31 @@ function ProfileByWallet() {
             </div>
 
             {myPreds.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-background p-8 text-center">
-                <p className="font-display text-2xl tracking-tight">No calls locked yet</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Pick a match and lock your call before kickoff.
-                </p>
-                <Link to="/matches" className="mt-5 inline-flex rounded-full bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground">
-                  Make a call
-                </Link>
+              <div className="relative overflow-hidden rounded-2xl border border-border bg-background p-8 text-center">
+                <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-20" />
+                <div className="relative flex flex-col items-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface border border-border text-primary text-2xl mb-4">
+                    ⚽
+                  </div>
+                  <h3 className="font-display text-2xl tracking-tight text-foreground">No calls locked yet</h3>
+                  <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                    Kick off your prediction record, earn Ball IQ points, and build your profile by predicting upcoming matches.
+                  </p>
+                  
+                  <div className="mt-6 w-full max-w-md rounded-xl border border-hairline bg-surface p-4 text-left">
+                    <span className="font-sans text-[10px] font-bold uppercase tracking-wider text-primary">How it works</span>
+                    <ol className="mt-2 space-y-2 text-xs text-muted-foreground list-decimal list-inside">
+                      <li>Pick any upcoming match fixture.</li>
+                      <li>Predict the winner, correct score, goals, and more.</li>
+                      <li>Lock your call on X Layer (gasless transaction).</li>
+                      <li>Climb the leaderboard when results settle!</li>
+                    </ol>
+                  </div>
+                  
+                  <Link to="/matches" className="mt-6 inline-flex rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110">
+                    Make your first call
+                  </Link>
+                </div>
               </div>
             ) : (
               <ul className="divide-y divide-hairline">
@@ -135,27 +154,38 @@ function ProfileByWallet() {
           <aside className="space-y-6">
             <div className="rounded-3xl border border-border bg-surface p-6">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Earned badges</h3>
-              {earnedBadges.length === 0 ? (
-                <div className="mt-4 rounded-xl border border-dashed border-border bg-background p-5 text-center">
-                  <p className="text-sm text-muted-foreground">No badges yet</p>
-                  <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                    Get your first correct call to unlock one
-                  </p>
-                </div>
-              ) : (
-                <div className="mt-4 grid grid-cols-2 gap-3">
-                  {earnedBadges.map((name) => {
-                    const b = BADGES.find((x) => x.name === name) ?? { id: name, name, description: "", rarity: "rare" as const, icon: "★" };
-                    return (
-                      <div key={b.id} className="rounded-2xl border border-hairline bg-background p-4">
-                        <div className="text-2xl">{b.icon}</div>
-                        <div className="mt-2 font-display text-sm leading-tight tracking-tight">{b.name}</div>
-                        <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{b.rarity}</div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {BADGES.map((b) => {
+                  const hasBadge = earnedBadges.some((eb) => eb.toLowerCase() === b.name.toLowerCase() || eb.toLowerCase() === b.id.toLowerCase());
+                  return (
+                    <div 
+                      key={b.id} 
+                      className={`relative overflow-hidden rounded-2xl border p-4 transition duration-300 ${
+                        hasBadge 
+                          ? "border-primary bg-primary/5 shadow-[0_0_12px_rgba(25,227,111,0.08)]" 
+                          : "border-border bg-background/50 opacity-40 hover:opacity-60"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className={`text-2xl filter ${hasBadge ? "" : "grayscale"}`}>
+                          {b.icon}
+                        </div>
+                        {!hasBadge && (
+                          <span className="font-sans text-[8px] font-bold uppercase tracking-wider text-muted-foreground bg-surface px-1.5 py-0.5 rounded border border-border">
+                            Locked
+                          </span>
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
-              )}
+                      <div className={`mt-2 font-display text-sm leading-tight tracking-tight ${hasBadge ? "text-foreground" : "text-muted-foreground"}`}>
+                        {b.name}
+                      </div>
+                      <div className="mt-0.5 text-[9px] leading-tight text-muted-foreground">
+                        {b.description}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="rounded-3xl border border-border bg-surface p-6">
@@ -164,9 +194,9 @@ function ProfileByWallet() {
                 {MATCHES.filter((m) => m.status === "upcoming").slice(0, 3).map((m) => (
                   <li key={m.id} className="flex items-center justify-between gap-3 rounded-xl border border-hairline bg-background p-3">
                     <div className="flex items-center gap-2">
-                      <span>{m.home.flag}</span>
+                      <Flag team={m.home} className="h-4 w-6 rounded-sm border border-border/20" />
                       <span className="font-mono text-xs text-foreground">{m.home.code} – {m.away.code}</span>
-                      <span>{m.away.flag}</span>
+                      <Flag team={m.away} className="h-4 w-6 rounded-sm border border-border/20" />
                     </div>
                     <Link to="/matches/$matchId" params={{ matchId: m.id }} className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary hover:underline">
                       Call →
