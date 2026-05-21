@@ -86,7 +86,7 @@ export const WORLD_CUP_TEAMS = Object.values(TEAMS).sort((a, b) =>
 
 export const MATCHES: Match[] = [
   {
-    id: "m-001",
+    id: "1",
     group: "Group A - Matchday 1",
     home: TEAMS.MEX,
     away: TEAMS.RSA,
@@ -96,7 +96,7 @@ export const MATCHES: Match[] = [
     callsLocked: 18402,
   },
   {
-    id: "m-002",
+    id: "2",
     group: "Group A - Matchday 1",
     home: TEAMS.KOR,
     away: TEAMS.CZE,
@@ -106,7 +106,7 @@ export const MATCHES: Match[] = [
     callsLocked: 12680,
   },
   {
-    id: "m-003",
+    id: "3",
     group: "Group B - Matchday 2",
     home: TEAMS.CAN,
     away: TEAMS.BIH,
@@ -116,7 +116,7 @@ export const MATCHES: Match[] = [
     callsLocked: 22104,
   },
   {
-    id: "m-004",
+    id: "4",
     group: "Group D - Matchday 2",
     home: TEAMS.USA,
     away: TEAMS.PAR,
@@ -126,7 +126,7 @@ export const MATCHES: Match[] = [
     callsLocked: 31204,
   },
   {
-    id: "m-005",
+    id: "5",
     group: "Group B - Matchday 1",
     home: TEAMS.QAT,
     away: TEAMS.SUI,
@@ -136,7 +136,7 @@ export const MATCHES: Match[] = [
     callsLocked: 6804,
   },
   {
-    id: "m-006",
+    id: "6",
     group: "Group C - Matchday 1",
     home: TEAMS.BRA,
     away: TEAMS.JPN,
@@ -147,7 +147,7 @@ export const MATCHES: Match[] = [
     underdogTeam: "JPN",
   },
   {
-    id: "m-007",
+    id: "7",
     group: "Group C - Matchday 1",
     home: TEAMS.HAI,
     away: TEAMS.SCO,
@@ -157,7 +157,7 @@ export const MATCHES: Match[] = [
     callsLocked: 9821,
   },
   {
-    id: "m-008",
+    id: "8",
     group: "Group D - Matchday 1",
     home: TEAMS.AUS,
     away: TEAMS.TUR,
@@ -167,7 +167,7 @@ export const MATCHES: Match[] = [
     callsLocked: 12044,
   },
   {
-    id: "m-009",
+    id: "9",
     group: "Group E - Matchday 1",
     home: TEAMS.GER,
     away: TEAMS.CUW,
@@ -177,7 +177,7 @@ export const MATCHES: Match[] = [
     callsLocked: 19422,
   },
   {
-    id: "m-010",
+    id: "10",
     group: "Group F - Matchday 1",
     home: TEAMS.NED,
     away: TEAMS.JPN,
@@ -187,7 +187,7 @@ export const MATCHES: Match[] = [
     callsLocked: 24018,
   },
   {
-    id: "m-011",
+    id: "11",
     group: "Group E - Matchday 1",
     home: TEAMS.CIV,
     away: TEAMS.ECU,
@@ -197,7 +197,7 @@ export const MATCHES: Match[] = [
     callsLocked: 10930,
   },
   {
-    id: "m-012",
+    id: "12",
     group: "Group F - Matchday 1",
     home: TEAMS.SWE,
     away: TEAMS.TUN,
@@ -207,7 +207,7 @@ export const MATCHES: Match[] = [
     callsLocked: 13372,
   },
   {
-    id: "m-013",
+    id: "13",
     group: "Group H - Matchday 1",
     home: TEAMS.ESP,
     away: TEAMS.CPV,
@@ -217,7 +217,7 @@ export const MATCHES: Match[] = [
     callsLocked: 21404,
   },
   {
-    id: "m-014",
+    id: "14",
     group: "Group G - Matchday 1",
     home: TEAMS.BEL,
     away: TEAMS.EGY,
@@ -227,7 +227,7 @@ export const MATCHES: Match[] = [
     callsLocked: 18842,
   },
   {
-    id: "m-015",
+    id: "15",
     group: "Group H - Matchday 1",
     home: TEAMS.KSA,
     away: TEAMS.URU,
@@ -237,7 +237,7 @@ export const MATCHES: Match[] = [
     callsLocked: 17205,
   },
   {
-    id: "m-016",
+    id: "16",
     group: "Group G - Matchday 1",
     home: TEAMS.IRN,
     away: TEAMS.NZL,
@@ -247,7 +247,7 @@ export const MATCHES: Match[] = [
     callsLocked: 9514,
   },
   {
-    id: "m-017",
+    id: "17",
     group: "Group I - Matchday 1",
     home: TEAMS.FRA,
     away: TEAMS.SEN,
@@ -257,7 +257,7 @@ export const MATCHES: Match[] = [
     callsLocked: 27640,
   },
   {
-    id: "m-018",
+    id: "18",
     group: "Group I - Matchday 1",
     home: TEAMS.IRQ,
     away: TEAMS.NOR,
@@ -267,7 +267,7 @@ export const MATCHES: Match[] = [
     callsLocked: 11948,
   },
   {
-    id: "m-019",
+    id: "19",
     group: "Group J - Matchday 1",
     home: TEAMS.ARG,
     away: TEAMS.ALG,
@@ -277,7 +277,7 @@ export const MATCHES: Match[] = [
     callsLocked: 30221,
   },
   {
-    id: "m-020",
+    id: "20",
     group: "Group J - Matchday 1",
     home: TEAMS.AUT,
     away: TEAMS.JOR,
@@ -287,7 +287,7 @@ export const MATCHES: Match[] = [
     callsLocked: 8754,
   },
   {
-    id: "m-021",
+    id: "21",
     group: "Group K - Matchday 1",
     home: TEAMS.POR,
     away: TEAMS.COD,
@@ -297,7 +297,7 @@ export const MATCHES: Match[] = [
     callsLocked: 25531,
   },
   {
-    id: "m-022",
+    id: "22",
     group: "Group L - Matchday 1",
     home: TEAMS.ENG,
     away: TEAMS.CRO,
@@ -307,7 +307,7 @@ export const MATCHES: Match[] = [
     callsLocked: 31886,
   },
   {
-    id: "m-023",
+    id: "23",
     group: "Group L - Matchday 1",
     home: TEAMS.GHA,
     away: TEAMS.PAN,
@@ -317,7 +317,7 @@ export const MATCHES: Match[] = [
     callsLocked: 10906,
   },
   {
-    id: "m-024",
+    id: "24",
     group: "Group K - Matchday 1",
     home: TEAMS.UZB,
     away: TEAMS.COL,
@@ -374,7 +374,9 @@ export interface Badge {
 export const BADGES: Badge[] = [
   { id: "first-call",      name: "First Call",      description: "User locks first prediction on X Layer",      icon: "mail" },
   { id: "knew-ball",        name: "Knew Ball",       description: "User gets first correct prediction",          icon: "target" },
-  { id: "perfect-call",     name: "Perfect Call",    description: "User gets all prediction fields correct",     icon: "trophy" },
+  { id: "strong-call",      name: "Strong Call",     description: "Three reads landed. You knew the shape of the match.", icon: "target" },
+  { id: "sharp-call",       name: "Sharp Call",      description: "Four out of five. One detail away from perfection.", icon: "sparkles" },
+  { id: "perfect-slate",    name: "Perfect Slate",   description: "Every detail landed. No edits. No excuses.",  icon: "trophy" },
   { id: "score-prophet",    name: "Score Prophet",   description: "User predicts exact final score",             icon: "sparkles" },
   { id: "first-blood",      name: "First Blood",     description: "User predicts first team to score",           icon: "zap" },
   { id: "hot-foot",         name: "Hot Foot",        description: "User gets 3 correct winner calls in a row",   icon: "flame" },
@@ -385,6 +387,6 @@ export const BADGES: Badge[] = [
 
 export const BADGE_GROUPS = {
   "Call Milestone": ["first-call"],
-  "Accuracy": ["first-blood", "score-prophet", "perfect-call"],
+  "Accuracy": ["strong-call", "sharp-call", "perfect-slate", "first-blood", "score-prophet"],
   "Reputation": ["knew-ball", "hot-foot", "upset-hunter", "chaos-merchant", "country-captain"]
 };

@@ -1,6 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { MATCHES, type Match } from "./match-data";
-import { connectXLayerWallet, getInjectedProvider, sendPredictionProofTransaction } from "./xlayer";
+import {
+  connectXLayerWallet,
+  getLockedPrediction,
+  getInjectedProvider,
+  sendPredictionProofTransaction,
+  signWalletMessage,
+  waitForTransactionReceipt,
+} from "./xlayer";
+import { hasSupabaseConfig, invokeKnewBallFunction } from "./supabase";
 
 /* =========================================================================
  * KnewBall mock onchain store
@@ -64,7 +72,7 @@ interface State {
   results: Record<string, MatchResult>;
 }
 
-const KEY = "knewball.v1";
+const KEY = "knewball.v2";
 
 function load(): State {
   if (typeof window === "undefined") return { wallet: null, chainId: null, profile: null, drafts: {}, predictions: [], results: {} };
@@ -101,7 +109,9 @@ const POINTS = {
   overUnder: 40,
   btts: 40,
   firstGoal: 60,
-  perfect: 150,
+  strongCall: 50,
+  sharpCall: 100,
+  perfectSlate: 200,
 };
 
 export function scorePrediction(p: DraftPrediction, r: MatchResult) {
@@ -117,10 +127,29 @@ export function scorePrediction(p: DraftPrediction, r: MatchResult) {
     { label: "Both teams to score", points: okBTTS ? POINTS.btts : 0, ok: okBTTS },
     { label: "First team to score", points: okFG ? POINTS.firstGoal : 0, ok: okFG },
   ];
-  const perfect = okWinner && okScore && okOU && okBTTS && okFG;
-  if (perfect) breakdown.push({ label: "Perfect Call bonus", points: POINTS.perfect, ok: true });
+  const correctCount = [okWinner, okScore, okOU, okBTTS, okFG].filter(Boolean).length;
+  const tier =
+    correctCount === 5 ? "perfect-slate" :
+    correctCount === 4 ? "sharp-call" :
+    correctCount === 3 ? "strong-call" :
+    null;
+  const tierBonus =
+    tier === "perfect-slate" ? POINTS.perfectSlate :
+    tier === "sharp-call" ? POINTS.sharpCall :
+    tier === "strong-call" ? POINTS.strongCall :
+    0;
+  if (tier) {
+    breakdown.push({
+      label:
+        tier === "perfect-slate" ? "Perfect Slate bonus" :
+        tier === "sharp-call" ? "Sharp Call bonus" :
+        "Strong Call bonus",
+      points: tierBonus,
+      ok: true,
+    });
+  }
   const total = breakdown.reduce((s, b) => s + b.points, 0);
-  return { total, breakdown, perfect };
+  return { total, breakdown, correctCount, tier };
 }
 
 /* ============ context ============ */
@@ -129,13 +158,14 @@ interface Api extends State {
   // wallet/profile
   connectWallet: () => Promise<string>;
   disconnect: () => void;
-  createProfile: (p: Omit<FanProfile, "wallet" | "createdAt">) => void;
+  createProfile: (p: Omit<FanProfile, "wallet" | "createdAt">) => Promise<void>;
   // drafts
   saveDraft: (d: DraftPrediction) => void;
   clearDraft: (matchId: string) => void;
   getDraft: (matchId: string) => DraftPrediction | undefined;
   // predictions
   lockPrediction: (matchId: string) => Promise<Prediction | undefined>;
+  recoverPrediction: (matchId: string) => Promise<Prediction | undefined>;
   getPrediction: (matchId: string, wallet?: string) => Prediction | undefined;
   getPredictionById: (id: string) => Prediction | undefined;
   claimPrediction: (id: string) => Prediction | undefined;
@@ -187,7 +217,7 @@ export function calculateBadgesForPrediction(
   const okOU = p.overUnder === r.overUnder;
   const okBTTS = p.btts === r.btts;
   const okFG = p.firstGoal === r.firstGoal;
-  const perfect = okWinner && okScore && okOU && okBTTS && okFG;
+  const correctCount = [okWinner, okScore, okOU, okBTTS, okFG].filter(Boolean).length;
 
   // Resolved user predictions in chronological resolution order
   const myResolved = allPredictions
@@ -210,9 +240,13 @@ export function calculateBadgesForPrediction(
     unlocked.push("Knew Ball");
   }
 
-  // 3. Perfect Call: user gets all 5 markets correct
-  if (perfect) {
-    unlocked.push("Perfect Call");
+  // 3. Tier badges: only award the highest match read tier.
+  if (correctCount === 5) {
+    unlocked.push("Perfect Slate");
+  } else if (correctCount === 4) {
+    unlocked.push("Sharp Call");
+  } else if (correctCount === 3) {
+    unlocked.push("Strong Call");
   }
 
   // 4. Score Prophet: user predicts exact score
@@ -268,8 +302,8 @@ export function calculateBadgesForPrediction(
   }
 
   // Special Demo Case Override for Brazil vs Japan:
-  if (m.home.code === "BRA" && m.away.code === "JPN" && perfect) {
-    return ["First Call", "Knew Ball", "First Blood", "Score Prophet", "Perfect Call"];
+  if (m.home.code === "BRA" && m.away.code === "JPN" && correctCount === 5) {
+    return ["First Call", "Knew Ball", "First Blood", "Score Prophet", "Perfect Slate"];
   }
 
   return unlocked;
@@ -312,12 +346,37 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setState((s) => ({ ...s, wallet: null, chainId: null, profile: null }));
   }, []);
 
-  const createProfile = useCallback((p: Omit<FanProfile, "wallet" | "createdAt">) => {
-    setState((s) => {
-      if (!s.wallet) return s;
-      return { ...s, profile: { ...p, wallet: s.wallet, createdAt: Date.now() } };
-    });
-  }, []);
+  const createProfile = useCallback(async (p: Omit<FanProfile, "wallet" | "createdAt">) => {
+    const wallet = state.wallet;
+    if (!wallet) return;
+
+    if (hasSupabaseConfig()) {
+      const timestamp = new Date().toISOString();
+      const nonce = crypto.randomUUID();
+      const message = createProfileSignatureMessage({
+        wallet,
+        displayName: p.displayName,
+        country: p.country,
+        nonce,
+        timestamp,
+      });
+      const signature = await signWalletMessage(message);
+      await invokeKnewBallFunction("create-profile", {
+        walletAddress: wallet,
+        displayName: p.displayName,
+        country: p.country,
+        nonce,
+        timestamp,
+        message,
+        signature,
+      });
+    }
+
+    setState((s) => ({
+      ...s,
+      profile: { ...p, wallet, createdAt: Date.now() },
+    }));
+  }, [state.wallet]);
 
   const saveDraft = useCallback((d: DraftPrediction) => {
     setState((s) => ({ ...s, drafts: { ...s.drafts, [d.matchId]: d } }));
@@ -336,16 +395,22 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const wallet = state.wallet;
     if (!current || !wallet) return undefined;
     const txHash = await sendPredictionProofTransaction({ from: wallet, profile: state.profile, draft: current });
+    await waitForTransactionReceipt(txHash);
+    const synced = await invokeKnewBallFunction<PredictionSyncResponse>("sync-prediction", {
+      walletAddress: wallet,
+      matchId,
+      txHash,
+    });
     let out: Prediction | undefined;
     setState((s) => {
       const d = s.drafts[matchId];
       if (!d || !s.wallet) return s;
       const pred: Prediction = {
         ...d,
-        id: `pred_${matchId}_${s.wallet.slice(2, 8)}_${Date.now().toString(36)}`,
+        id: synced?.prediction.id ?? `pred_${matchId}_${s.wallet.slice(2, 8)}_${Date.now().toString(36)}`,
         wallet: s.wallet,
         txHash,
-        lockedAt: Date.now(),
+        lockedAt: synced?.prediction.lockedAt ? Date.parse(synced.prediction.lockedAt) : Date.now(),
         claimed: false,
       };
       out = pred;
@@ -355,6 +420,42 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
     return out;
   }, [state.drafts, state.profile, state.wallet]);
+
+  const recoverPrediction = useCallback(async (matchId: string): Promise<Prediction | undefined> => {
+    const wallet = state.wallet;
+    const existing = state.predictions.find((prediction) => prediction.matchId === matchId && prediction.wallet === wallet);
+    if (!wallet || existing?.txHash) return undefined;
+
+    const locked = await getLockedPrediction(matchId, wallet);
+    if (!locked) return undefined;
+
+    const recovered: Prediction = {
+      ...existing,
+      id: existing?.id ?? `chain_${matchId}_${wallet.slice(2, 8)}_${Math.floor(locked.lockedAt / 1000).toString(36)}`,
+      matchId,
+      wallet,
+      txHash: locked.txHash,
+      winner: locked.winner,
+      homeScore: locked.homeScore,
+      awayScore: locked.awayScore,
+      overUnder: locked.overUnder,
+      btts: locked.btts,
+      firstGoal: locked.firstGoal,
+      createdAt: locked.lockedAt,
+      lockedAt: locked.lockedAt,
+      claimed: locked.claimed,
+    };
+
+    setState((s) => ({
+      ...s,
+      predictions: s.predictions.some((prediction) => prediction.matchId === matchId && prediction.wallet === wallet)
+        ? s.predictions.map((prediction) => (
+          prediction.matchId === matchId && prediction.wallet === wallet ? recovered : prediction
+        ))
+        : [...s.predictions, recovered],
+    }));
+    return recovered;
+  }, [state.predictions, state.wallet]);
 
   const getPrediction = useCallback((matchId: string, w?: string) => {
     const wallet = w ?? state.wallet;
@@ -422,13 +523,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       connectWallet, disconnect, createProfile,
       saveDraft, clearDraft,
       getDraft: (m) => state.drafts[m],
-      lockPrediction, getPrediction, getPredictionById, claimPrediction,
+      lockPrediction, recoverPrediction, getPrediction, getPredictionById, claimPrediction,
       resolveMatch, getResult,
       totalBallIq, unclaimed,
       currentStreak: streakStats.current,
       bestStreak: streakStats.best,
     };
-  }, [state, connectWallet, disconnect, createProfile, saveDraft, clearDraft, lockPrediction, getPrediction, getPredictionById, claimPrediction, resolveMatch, getResult]);
+  }, [state, connectWallet, disconnect, createProfile, saveDraft, clearDraft, lockPrediction, recoverPrediction, getPrediction, getPredictionById, claimPrediction, resolveMatch, getResult]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
@@ -462,4 +563,32 @@ export function describePrediction(p: DraftPrediction, m: Match) {
     p.btts === "yes" ? "Both teams score" : "Clean sheet",
     first,
   ];
+}
+
+type PredictionSyncResponse = {
+  status: "synced" | "already_synced";
+  prediction: {
+    id: string;
+    lockedAt: string | null;
+  };
+};
+
+function createProfileSignatureMessage(args: {
+  wallet: string;
+  displayName: string;
+  country: string;
+  nonce: string;
+  timestamp: string;
+}) {
+  return [
+    "Create KnewBall Fan Profile",
+    "",
+    `Wallet: ${args.wallet.toLowerCase()}`,
+    `Display Name: ${args.displayName.trim()}`,
+    `Country: ${args.country.trim()}`,
+    `Nonce: ${args.nonce}`,
+    `Timestamp: ${args.timestamp}`,
+    "",
+    "This signature proves ownership of this wallet for KnewBall profile creation.",
+  ].join("\n");
 }

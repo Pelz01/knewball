@@ -26,16 +26,12 @@ export function HowItWorks() {
     <div>
       <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between md:mb-10">
         <div>
-          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
-            02 / Daily loop
-          </span>
           <h2 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl md:text-5xl">
             Four steps. Before every kickoff.
           </h2>
         </div>
         <p className="max-w-md text-sm text-muted-foreground">
-          KnewBall isn't a market. It's a streak game built on football culture and verifiable
-          history.
+          A streak game built on football culture, sharp calls, and verifiable history.
         </p>
       </div>
 

@@ -93,10 +93,18 @@ export function OnboardingModal({
           {step === "profile" && (
           <form
             className="relative p-6 pt-8 sm:p-8"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
               if (!name.trim()) return;
-              createProfile({ displayName: name.trim(), country });
+              setPending(true);
+              setError(null);
+              try {
+                await createProfile({ displayName: name.trim(), country });
+              } catch (err) {
+                setError(err instanceof Error ? err.message : "Profile creation failed.");
+              } finally {
+                setPending(false);
+              }
             }}
           >
             <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">Step 2 / 2</span>
@@ -111,7 +119,7 @@ export function OnboardingModal({
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  maxLength={24}
+                  maxLength={20}
                   placeholder="e.g. goat_caller"
                   className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
                 />
@@ -132,11 +140,16 @@ export function OnboardingModal({
 
             <button
               type="submit"
-              disabled={!name.trim()}
+              disabled={!name.trim() || pending}
               className="mt-6 w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:bg-surface-elevated disabled:text-muted-foreground"
             >
-              Create profile
+              {pending ? "Creating..." : "Create profile"}
             </button>
+            {error && (
+              <p className="mt-3 rounded-xl border border-red-card/30 bg-red-card/10 p-3 text-xs text-red-card">
+                {error}
+              </p>
+            )}
           </form>
           )}
         </div>

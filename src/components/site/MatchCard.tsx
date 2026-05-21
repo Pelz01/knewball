@@ -24,16 +24,10 @@ function fanSplit(id: string) {
   const away = Math.max(5, 100 - home - draw);
   return { home, draw, away };
 }
-function form(id: string, salt: number) {
-  const h = hash(id + salt);
-  const out: ("W" | "D" | "L")[] = [];
-  for (let i = 0; i < 5; i++) {
-    const v = (h >> (i * 3)) & 0b11;
-    out.push(v === 0 ? "L" : v === 1 ? "D" : "W");
-  }
-  return out;
-}
 
+function groupLabel(group: string) {
+  return group.split(" - ")[0];
+}
 export function MatchCard({ match }: { match: Match }) {
   const { day, time } = formatKickoff(match.kickoff);
   const isLive = match.status === "live";
@@ -63,7 +57,7 @@ export function MatchCard({ match }: { match: Match }) {
       {/* Status strip */}
       <div className="flex items-center justify-between border-b border-hairline px-5 py-2.5">
         <span className="truncate font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-          {match.group}
+          {groupLabel(match.group)}
         </span>
         {isLive ? (
           <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-red-card/15 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-red-card">
@@ -83,7 +77,7 @@ export function MatchCard({ match }: { match: Match }) {
 
       {/* Teams */}
       <div className="px-5 pt-5 pb-4">
-        <TeamRow team={match.home} score={match.score?.home} form={form(match.id, 1)} />
+        <TeamRow team={match.home} score={match.score?.home} />
         <div className="my-3 flex items-center gap-3">
           <span className="h-px flex-1 bg-hairline" />
           <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
@@ -91,7 +85,7 @@ export function MatchCard({ match }: { match: Match }) {
           </span>
           <span className="h-px flex-1 bg-hairline" />
         </div>
-        <TeamRow team={match.away} score={match.score?.away} form={form(match.id, 2)} />
+        <TeamRow team={match.away} score={match.score?.away} />
       </div>
 
       {/* Fan call split */}
@@ -137,11 +131,9 @@ export function MatchCard({ match }: { match: Match }) {
 function TeamRow({
   team,
   score,
-  form,
 }: {
   team: Match["home"];
   score?: number;
-  form: ("W" | "D" | "L")[];
 }) {
   return (
     <div className="flex items-center gap-3">
@@ -150,23 +142,8 @@ function TeamRow({
         <div className="font-display text-lg leading-none tracking-tight">
           {team.name}
         </div>
-        <div className="mt-1.5 flex items-center gap-1">
-          {form.map((r, i) => (
-            <span
-              key={i}
-              className={`h-1.5 w-1.5 rounded-full ${
-                r === "W"
-                  ? "bg-primary"
-                  : r === "D"
-                    ? "bg-muted-foreground/50"
-                    : "bg-red-card/70"
-              }`}
-              title={r}
-            />
-          ))}
-          <span className="ml-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-            {team.code}
-          </span>
+        <div className="mt-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          {team.code}
         </div>
       </div>
       {typeof score === "number" && (

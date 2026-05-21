@@ -11,7 +11,11 @@ export function BadgeIcon({ id, className = "h-6 w-6" }: BadgeIconProps) {
       return <Mail className={`${className} text-blue-400`} />;
     case "knew-ball":
       return <Target className={`${className} text-emerald-400`} />;
-    case "perfect-call":
+    case "strong-call":
+      return <Target className={`${className} text-lime-400`} />;
+    case "sharp-call":
+      return <Sparkles className={`${className} text-cyan-400`} />;
+    case "perfect-slate":
       return <Trophy className={`${className} text-amber-400`} />;
     case "score-prophet":
       return <Sparkles className={`${className} text-purple-400`} />;

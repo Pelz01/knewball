@@ -1,5 +1,5 @@
+import { createPublicClient, encodeFunctionData, http, parseAbi, type Address } from "viem";
 import type { DraftPrediction, FanProfile } from "./store";
-import { MATCHES } from "./match-data";
 
 export const XLAYER_TESTNET = {
   chainId: 1952,
@@ -21,6 +21,12 @@ export const XLAYER_MAINNET = {
 
 export const ACTIVE_XLAYER =
   import.meta.env.VITE_XLAYER_NETWORK === "mainnet" ? XLAYER_MAINNET : XLAYER_TESTNET;
+
+const KNEWBALL_CUP_ABI = parseAbi([
+  "function submitPrediction(uint256 matchId, uint8 winner, uint8 homeScore, uint8 awayScore, uint8 totalGoals, uint8 bothTeamsScored, uint8 firstGoal)",
+  "function predictions(uint256 matchId, address wallet) view returns (uint8 winner, uint8 homeScore, uint8 awayScore, uint8 totalGoals, uint8 bothTeamsScored, uint8 firstGoal, uint256 lockedAt, uint256 pointsEarned, bool exists, bool claimed)",
+  "event PredictionSubmitted(address indexed wallet, uint256 indexed matchId, uint256 lockedAt)",
+]);
 
 export type Eip1193Provider = {
   request: <T = unknown>(args: { method: string; params?: unknown[] | Record<string, unknown> }) => Promise<T>;
@@ -100,50 +106,189 @@ export async function sendPredictionProofTransaction(args: {
   if (!provider) throw new Error("No EVM wallet found.");
   await ensureXLayerNetwork(provider);
 
-  const match = MATCHES.find((m) => m.id === args.draft.matchId);
-  const payload = {
-    app: "KnewBall",
-    action: "submitPrediction",
-    chain: ACTIVE_XLAYER.name,
-    wallet: args.from,
-    profile: args.profile ? {
-      displayName: args.profile.displayName,
-      country: args.profile.country,
-    } : null,
-    match: match ? {
-      id: match.id,
-      home: match.home.code,
-      away: match.away.code,
-      kickoff: match.kickoff,
-    } : { id: args.draft.matchId },
-    prediction: {
-      winner: args.draft.winner,
-      homeScore: args.draft.homeScore,
-      awayScore: args.draft.awayScore,
-      overUnder: args.draft.overUnder,
-      bothTeamsToScore: args.draft.btts,
-      firstGoal: args.draft.firstGoal,
-    },
-    lockedAtClient: new Date().toISOString(),
-    proofVersion: 1,
-  };
+  void args.profile;
+  const data = encodeFunctionData({
+    abi: KNEWBALL_CUP_ABI,
+    functionName: "submitPrediction",
+    args: [
+      matchIdToContractId(args.draft.matchId),
+      winnerToContractPick(args.draft.winner),
+      args.draft.homeScore,
+      args.draft.awayScore,
+      totalGoalsToContractPick(args.draft.overUnder),
+      binaryToContractPick(args.draft.btts),
+      firstGoalToContractPick(args.draft.firstGoal),
+    ],
+  });
 
-  const data = utf8ToHex(JSON.stringify(payload));
   return requestProvider<string>(provider, "eth_sendTransaction", [{
       from: args.from,
-      to: args.from,
+      to: knewBallCupAddress(),
       value: "0x0",
       data,
     }]);
+}
+
+export async function waitForTransactionReceipt(txHash: string) {
+  const provider = getInjectedProvider();
+  if (!provider) throw new Error("No EVM wallet found.");
+
+  for (let attempt = 0; attempt < 45; attempt += 1) {
+    const receipt = await requestProvider<{ status?: string } | null>(
+      provider,
+      "eth_getTransactionReceipt",
+      [txHash],
+    );
+    if (receipt) {
+      if (receipt.status === "0x0") throw new Error("X Layer transaction reverted.");
+      return receipt;
+    }
+    await new Promise((resolve) => window.setTimeout(resolve, 1500));
+  }
+
+  throw new Error("X Layer receipt is still pending. Check the transaction and try again.");
+}
+
+export async function signWalletMessage(message: string) {
+  const provider = getInjectedProvider();
+  if (!provider) throw new Error("No EVM wallet found.");
+  const accounts = await requestProvider<string[]>(provider, "eth_accounts");
+  const wallet = accounts[0];
+  if (!wallet) throw new Error("Connect your wallet before signing.");
+
+  try {
+    return await requestProvider<string>(provider, "personal_sign", [message, wallet]);
+  } catch (error) {
+    const code = getProviderErrorCode(error);
+    if (code === 4001 || code === "4001") throw error;
+    return requestProvider<string>(provider, "personal_sign", [wallet, message]);
+  }
 }
 
 export function explorerTxUrl(txHash: string) {
   return `${ACTIVE_XLAYER.explorerUrl}/tx/${txHash}`;
 }
 
-function utf8ToHex(value: string) {
-  const bytes = new TextEncoder().encode(value);
-  return `0x${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
+export async function getLockedPrediction(matchId: string, wallet: string) {
+  const contractMatchId = matchIdToContractId(matchId);
+  const prediction = await activePublicClient.readContract({
+    abi: KNEWBALL_CUP_ABI,
+    address: knewBallCupAddress(),
+    functionName: "predictions",
+    args: [contractMatchId, wallet as Address],
+  });
+
+  if (!prediction[8]) return null;
+
+  const txHash = await findPredictionSubmissionHash(contractMatchId, wallet);
+
+  return {
+    winner: winnerFromContractPick(prediction[0]),
+    homeScore: prediction[1],
+    awayScore: prediction[2],
+    overUnder: totalGoalsFromContractPick(prediction[3]),
+    btts: binaryFromContractPick(prediction[4]),
+    firstGoal: firstGoalFromContractPick(prediction[5]),
+    lockedAt: Number(prediction[6]) * 1000,
+    claimed: prediction[9],
+    txHash,
+  } satisfies Pick<DraftPrediction, "winner" | "homeScore" | "awayScore" | "overUnder" | "btts" | "firstGoal"> & {
+    lockedAt: number;
+    claimed: boolean;
+    txHash: string;
+  };
+}
+
+async function findPredictionSubmissionHash(matchId: bigint, wallet: string) {
+  try {
+    let toBlock = await activePublicClient.getBlockNumber();
+
+    // X Layer testnet RPC limits eth_getLogs ranges, so scan recent windows.
+    for (let window = 0; window < 40; window += 1) {
+      const fromBlock = toBlock > 99n ? toBlock - 99n : 0n;
+      const events = await activePublicClient.getContractEvents({
+        abi: KNEWBALL_CUP_ABI,
+        address: knewBallCupAddress(),
+        eventName: "PredictionSubmitted",
+        args: { wallet: wallet as Address, matchId },
+        fromBlock,
+        toBlock,
+      });
+
+      const txHash = events[events.length - 1]?.transactionHash;
+      if (txHash) return txHash;
+      if (fromBlock === 0n) break;
+      toBlock = fromBlock - 1n;
+    }
+
+    return "";
+  } catch (error) {
+    console.warn("Could not recover PredictionSubmitted transaction hash.", error);
+    return "";
+  }
+}
+
+function knewBallCupAddress(): Address {
+  const address = import.meta.env.VITE_KNEWBALL_CONTRACT_ADDRESS;
+  if (typeof address !== "string" || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+    throw new Error(`Missing ${ACTIVE_XLAYER.name} KnewBallCup contract address.`);
+  }
+  return address as Address;
+}
+
+function matchIdToContractId(matchId: string) {
+  if (!/^\d+$/.test(matchId)) throw new Error(`Match ${matchId} is missing an onchain numeric id.`);
+  return BigInt(matchId);
+}
+
+function winnerToContractPick(value: DraftPrediction["winner"]) {
+  if (value === "home") return 0;
+  if (value === "draw") return 1;
+  return 2;
+}
+
+function totalGoalsToContractPick(value: DraftPrediction["overUnder"]) {
+  return value === "under" ? 0 : 1;
+}
+
+function binaryToContractPick(value: DraftPrediction["btts"]) {
+  return value === "no" ? 0 : 1;
+}
+
+function firstGoalToContractPick(value: DraftPrediction["firstGoal"]) {
+  if (value === "home") return 0;
+  if (value === "away") return 1;
+  return 2;
+}
+
+const activePublicClient = createPublicClient({
+  chain: {
+    id: ACTIVE_XLAYER.chainId,
+    name: ACTIVE_XLAYER.name,
+    nativeCurrency: ACTIVE_XLAYER.nativeCurrency,
+    rpcUrls: { default: { http: ACTIVE_XLAYER.rpcUrls } },
+  },
+  transport: http(ACTIVE_XLAYER.rpcUrls[0]),
+});
+
+function winnerFromContractPick(value: number) {
+  if (value === 0) return "home";
+  if (value === 1) return "draw";
+  return "away";
+}
+
+function totalGoalsFromContractPick(value: number) {
+  return value === 0 ? "under" : "over";
+}
+
+function binaryFromContractPick(value: number) {
+  return value === 0 ? "no" : "yes";
+}
+
+function firstGoalFromContractPick(value: number) {
+  if (value === 0) return "home";
+  if (value === 1) return "away";
+  return "none";
 }
 
 async function requestProvider<T = unknown>(

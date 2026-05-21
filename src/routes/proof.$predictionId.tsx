@@ -38,6 +38,7 @@ function ProofPage() {
   const headline = p.claimed && (p.pointsEarned ?? 0) > 0
     ? `${shortAddress(p.wallet)} knew ball before kickoff.`
     : `${shortAddress(p.wallet)} locked this call before kickoff.`;
+  const hasTxHash = Boolean(p.txHash);
 
   const url = typeof window !== "undefined" ? window.location.href : "";
 
@@ -99,7 +100,7 @@ function ProofPage() {
                 <dl className="mt-3 space-y-1.5 font-mono text-xs">
                   <Row k="Wallet" v={shortAddress(p.wallet)} />
                   <Row k="Locked at" v={new Date(p.lockedAt).toUTCString().replace("GMT", "UTC")} />
-                  <Row k="Tx hash" v={`${p.txHash.slice(0, 10)}…${p.txHash.slice(-6)}`} />
+                  <Row k="Tx hash" v={hasTxHash ? `${p.txHash.slice(0, 10)}…${p.txHash.slice(-6)}` : "Recovered from contract"} />
                   <Row k="Status" v={p.claimed ? "Claimed" : r ? "Ready to claim" : "Awaiting kickoff"} />
                   {p.claimed && <Row k="Ball IQ earned" v={`+${p.pointsEarned}`} />}
                   {p.badges && p.badges.length > 0 ? (
@@ -150,14 +151,16 @@ function ProofPage() {
               >
                 {copied ? "Link copied" : "Copy share link"}
               </button>
-              <a
-                href={explorerTxUrl(p.txHash)}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition hover:bg-surface-elevated"
-              >
-                View on explorer
-              </a>
+              {hasTxHash && (
+                <a
+                  href={explorerTxUrl(p.txHash)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition hover:bg-surface-elevated"
+                >
+                  View on explorer
+                </a>
+              )}
               <Link to="/profile/$wallet" params={{ wallet: p.wallet }} className="inline-flex items-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition hover:bg-surface-elevated">
                 View profile
               </Link>

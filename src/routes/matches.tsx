@@ -384,10 +384,12 @@ function ProfileSetupPanel({
   onCreate,
 }: {
   wallet: string;
-  onCreate: (p: { displayName: string; country: string }) => void;
+  onCreate: (p: { displayName: string; country: string }) => Promise<void>;
 }) {
   const [name, setName] = useState("");
   const [country, setCountry] = useState("ARG");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <section className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
@@ -404,10 +406,18 @@ function ProfileSetupPanel({
       </div>
 
       <form
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
           if (!name.trim()) return;
-          onCreate({ displayName: name.trim(), country });
+          setPending(true);
+          setError(null);
+          try {
+            await onCreate({ displayName: name.trim(), country });
+          } catch (err) {
+            setError(err instanceof Error ? err.message : "Profile creation failed.");
+          } finally {
+            setPending(false);
+          }
         }}
         className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6"
       >
@@ -417,8 +427,8 @@ function ProfileSetupPanel({
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              maxLength={24}
-              placeholder="@pelz0x"
+              maxLength={20}
+              placeholder="pelz0x"
               className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
             />
           </Field>
@@ -435,11 +445,16 @@ function ProfileSetupPanel({
           </Field>
           <button
             type="submit"
-            disabled={!name.trim()}
+            disabled={!name.trim() || pending}
             className="w-full rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:bg-surface-elevated disabled:text-muted-foreground"
           >
-            Create profile
+            {pending ? "Creating..." : "Create profile"}
           </button>
+          {error && (
+            <p className="rounded-xl border border-red-card/30 bg-red-card/10 p-3 text-xs text-red-card">
+              {error}
+            </p>
+          )}
         </div>
       </form>
     </section>

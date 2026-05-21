@@ -2,6 +2,15 @@ import { Link } from "@tanstack/react-router";
 import heroImg from "@/assets/hero-stadium.jpg";
 
 export function Hero() {
+  const heroStats = [
+    { label: "Season 1", value: "Live", accent: "green" as const },
+    { label: "Calls locked", value: "412,884" },
+    { label: "Live fans", value: "58,210" },
+    { label: "Countries", value: "48" },
+    { label: "Avg. proof time", value: "1.2s", accent: "gold" as const },
+  ];
+  const statLoop = [...heroStats, ...heroStats];
+
   return (
     <section className="relative isolate overflow-hidden border-b border-border">
       <img
@@ -22,15 +31,6 @@ export function Hero() {
 
       <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-8 sm:px-6 md:pb-24 md:pt-12">
         <div className="flex flex-col items-start gap-5 md:gap-8">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
-              World Cup · Season 01
-            </span>
-            <span className="rounded-full border border-border bg-surface/70 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
-              Onchain on X Layer
-            </span>
-          </div>
-
           <h1 className="font-display text-[clamp(2.8rem,9vw,6rem)] leading-[0.92] tracking-tight">
             <span className="block">Prove you</span>
             <span className="block">
@@ -67,13 +67,25 @@ export function Hero() {
             football takes, verified onchain.
           </p>
 
-          {/* Stats — 2-col on mobile, 4-col on md+ */}
-          <dl className="mt-2 grid w-full grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border md:max-w-3xl md:grid-cols-4">
-            <Stat label="Calls locked" value="412,884" />
-            <Stat label="Live fans" value="58,210" />
-            <Stat label="Countries" value="48" />
-            <Stat label="Avg. proof time" value="1.2s" accent="gold" />
-          </dl>
+          <div className="relative mt-2 w-full overflow-hidden rounded-2xl border border-border bg-surface/75 backdrop-blur-md">
+            <dl className="ticker-track flex min-w-max whitespace-nowrap">
+              {statLoop.map((stat, index) => (
+                <Stat
+                  key={`${stat.label}-${index}`}
+                  label={stat.label}
+                  value={stat.value}
+                  accent={stat.accent}
+                />
+              ))}
+            </dl>
+            <div
+              className="pointer-events-none absolute inset-0"
+              style={{
+                background:
+                  "linear-gradient(to right, var(--background) 0, transparent 7%, transparent 93%, var(--background) 100%)",
+              }}
+            />
+          </div>
         </div>
       </div>
     </section>
@@ -90,13 +102,13 @@ function Stat({
   accent?: "gold" | "green";
 }) {
   return (
-    <div className="bg-surface/90 px-4 py-4 backdrop-blur-md sm:px-5 sm:py-5">
+    <div className="min-w-[170px] shrink-0 border-r border-hairline bg-surface/90 px-4 py-4 sm:min-w-[210px] sm:px-5 sm:py-5">
       <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
         {label}
       </div>
       <div
         className={`mt-1.5 font-display text-2xl tracking-tight sm:mt-2 sm:text-3xl md:text-4xl ${
-          accent === "gold" ? "text-gold" : "text-foreground"
+          accent === "gold" ? "text-gold" : accent === "green" ? "text-primary text-glow-green" : "text-foreground"
         }`}
       >
         {value}

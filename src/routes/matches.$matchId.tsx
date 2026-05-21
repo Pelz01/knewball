@@ -41,7 +41,7 @@ function hash(s: string) {
 
 function MatchDetail() {
   const { match } = Route.useLoaderData();
-  const { wallet, profile, getDraft, saveDraft, clearDraft, getPrediction, lockPrediction, getResult, claimPrediction } = useStore();
+  const { wallet, profile, getDraft, saveDraft, clearDraft, getPrediction, lockPrediction, recoverPrediction, getResult, claimPrediction } = useStore();
 
   const pred = getPrediction(match.id);
   const draft = getDraft(match.id);
@@ -73,6 +73,13 @@ function MatchDetail() {
   useEffect(() => {
     if (pred && txState === "idle") setTxState("locked");
   }, [pred, txState]);
+
+  useEffect(() => {
+    if (!wallet || pred?.txHash) return;
+    void recoverPrediction(match.id).catch((error) => {
+      console.warn("Could not recover locked prediction from X Layer.", error);
+    });
+  }, [match.id, pred?.txHash, recoverPrediction, wallet]);
 
   const h = hash(match.id);
   const homePct = 25 + (h % 40);
@@ -417,7 +424,13 @@ function FormPanel({
             <div className="flex justify-between"><span>Both Teams to Score</span><span className="text-primary font-bold">+40 IQ</span></div>
             <div className="flex justify-between"><span>First Team to Score</span><span className="text-primary font-bold">+60 IQ</span></div>
             <div className="flex justify-between border-t border-border/30 pt-2 text-foreground">
-              <span>Perfect Call Bonus</span><span className="text-glow-green font-bold">+150 IQ</span>
+              <span>3/5 Strong Call Bonus</span><span className="text-glow-green font-bold">+50 IQ</span>
+            </div>
+            <div className="flex justify-between text-foreground">
+              <span>4/5 Sharp Call Bonus</span><span className="text-glow-green font-bold">+100 IQ</span>
+            </div>
+            <div className="flex justify-between text-foreground">
+              <span>5/5 Perfect Slate Bonus</span><span className="text-glow-green font-bold">+200 IQ</span>
             </div>
           </div>
         )}
@@ -483,7 +496,9 @@ function LockedPanel({ match, prediction, isLive }: { match: Match; prediction: 
         </div>
         <div className="rounded-xl border border-hairline bg-background p-3">
           <dt>Tx hash</dt>
-          <dd className="mt-1 text-foreground normal-case tracking-normal">{prediction.txHash.slice(0, 10)}…{prediction.txHash.slice(-6)}</dd>
+          <dd className="mt-1 text-foreground normal-case tracking-normal">
+            {prediction.txHash ? `${prediction.txHash.slice(0, 10)}...${prediction.txHash.slice(-6)}` : "Recovered from contract"}
+          </dd>
         </div>
       </dl>
       <div className="mt-6 flex flex-wrap gap-3">
@@ -493,9 +508,11 @@ function LockedPanel({ match, prediction, isLive }: { match: Match; prediction: 
         <Link to="/matches" className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-elevated">
           Back to matchboard
         </Link>
-        <a href={explorerTxUrl(prediction.txHash)} target="_blank" rel="noreferrer" className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-elevated">
-          View on explorer
-        </a>
+        {prediction.txHash && (
+          <a href={explorerTxUrl(prediction.txHash)} target="_blank" rel="noreferrer" className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-elevated">
+            View on explorer
+          </a>
+        )}
       </div>
     </>
   );
@@ -581,10 +598,18 @@ function ClaimCelebration({
 
   // Map unlocked badge names to their metadata
   const unlockedBadges = BADGES.filter(b => unlockedBadgesList.includes(b.name));
+  const readTier = unlockedBadges.find((b) =>
+    ["strong-call", "sharp-call", "perfect-slate"].includes(b.id)
+  );
+  const tierLead =
+    readTier?.id === "strong-call" ? "Three reads landed. You knew the shape of the match." :
+    readTier?.id === "sharp-call" ? "Four out of five. One detail away from perfection." :
+    readTier?.id === "perfect-slate" ? "Every detail landed. No edits. No excuses." :
+    null;
 
-  // Check if perfect call on Brazil vs Japan
+  // Check if the demo match cleared the full five-read board.
   const isPerfectJapan = match.home.code === "BRA" && match.away.code === "JPN" &&
-    (prediction.pointsEarned ?? 0) >= 540;
+    (prediction.pointsEarned ?? 0) >= 590;
 
   // Categorize badges
   const categories = Object.entries(BADGE_GROUPS).map(([catName, badgeIds]) => {
@@ -621,13 +646,13 @@ function ClaimCelebration({
           ) : (
             <div className="mb-4">
               <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
-                matchday verdict
+                {readTier?.name ?? "matchday verdict"}
               </span>
               <h2 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">
-                fixture complete
+                {readTier ? `${readTier.name}.` : "fixture complete"}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground font-mono">
-                {match.home.name} vs {match.away.name}
+                {tierLead ?? `${match.home.name} vs ${match.away.name}`}
               </p>
             </div>
           )}

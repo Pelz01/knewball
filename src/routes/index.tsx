@@ -125,7 +125,7 @@ function Pillars() {
             03 / What you get
           </span>
           <h2 className="mt-2 font-display text-4xl tracking-tight md:text-5xl">
-            Built for fans, not bettors.
+            Built for fans who call it early.
           </h2>
         </div>
         <p className="max-w-md text-sm text-muted-foreground">
