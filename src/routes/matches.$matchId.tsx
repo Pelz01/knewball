@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { OnboardingModal } from "@/components/site/OnboardingModal";
-import { MATCHES, type Match, BADGES, BADGE_GROUPS } from "@/lib/match-data";
-import { BadgeIcon } from "@/components/site/BadgeIcon";
+import { MATCHES, type Match } from "@/lib/match-data";
 import { Flag } from "@/components/site/Flag";
 import {
   useStore, describePrediction, shortAddress,
@@ -41,7 +40,11 @@ function hash(s: string) {
 
 function MatchDetail() {
   const { match } = Route.useLoaderData();
-  const { wallet, profile, getDraft, saveDraft, clearDraft, getPrediction, lockPrediction, recoverPrediction, getResult, claimPrediction } = useStore();
+  const router = useRouter();
+  const {
+    wallet, profile, getDraft, saveDraft, clearDraft, getPrediction, lockPrediction, recoverPrediction,
+    getResult, claimPrediction, hydratePredictionById,
+  } = useStore();
 
   const pred = getPrediction(match.id);
   const draft = getDraft(match.id);
@@ -50,17 +53,228 @@ function MatchDetail() {
   const isFinal = match.status === "final" || !!result;
   const kickoffPassed = new Date(match.kickoff).getTime() < Date.now() || isLive || isFinal;
 
-  // Form state (seeded from draft if present)
+  // Form state (seeded from draft if present, else consistent defaults: 2-1 Home win)
   const [winner, setWinner] = useState<"home" | "draw" | "away">(draft?.winner ?? "home");
-  const [scoreH, setScoreH] = useState(draft?.homeScore ?? 1);
-  const [scoreA, setScoreA] = useState(draft?.awayScore ?? 1);
+  const [scoreH, setScoreH] = useState(draft ? draft.homeScore : 2);
+  const [scoreA, setScoreA] = useState(draft ? draft.awayScore : 1);
   const [overUnder, setOverUnder] = useState<"over" | "under">(draft?.overUnder ?? "over");
   const [btts, setBtts] = useState<"yes" | "no">(draft?.btts ?? "yes");
   const [firstGoal, setFirstGoal] = useState<"home" | "away" | "none">(draft?.firstGoal ?? "home");
 
+  // Sync utilities to keep all prediction parameters logically consistent with each other
+  const syncFromScores = (sh: number, sa: number) => {
+    // Winner
+    let nextWinner: "home" | "draw" | "away" = "draw";
+    if (sh > sa) nextWinner = "home";
+    else if (sh < sa) nextWinner = "away";
+    setWinner(nextWinner);
+
+    // Over/Under 2.5 goals
+    const nextOU = sh + sa >= 3 ? "over" : "under";
+    setOverUnder(nextOU);
+
+    // BTTS (Both teams to score)
+    const nextBTTS = sh > 0 && sa > 0 ? "yes" : "no";
+    setBtts(nextBTTS);
+
+    // First goal scorer
+    if (sh === 0 && sa === 0) {
+      setFirstGoal("none");
+    } else if (sh > 0 && sa === 0) {
+      setFirstGoal("home");
+    } else if (sh === 0 && sa > 0) {
+      setFirstGoal("away");
+    } else {
+      setFirstGoal((prev) => (prev === "none" ? "home" : prev));
+    }
+  };
+
+  const updateScoreH = (val: number) => {
+    setScoreH(val);
+    syncFromScores(val, scoreA);
+  };
+
+  const updateScoreA = (val: number) => {
+    setScoreA(val);
+    syncFromScores(scoreH, val);
+  };
+
+  const updateWinner = (w: "home" | "draw" | "away") => {
+    setWinner(w);
+    let sh = scoreH;
+    let sa = scoreA;
+
+    if (w === "home") {
+      if (sh <= sa) {
+        sh = sa + 1;
+        if (sh > 9) {
+          sh = 9;
+          sa = 8;
+        }
+      }
+    } else if (w === "draw") {
+      if (sh !== sa) {
+        sa = sh;
+      }
+    } else if (w === "away") {
+      if (sa <= sh) {
+        sa = sh + 1;
+        if (sa > 9) {
+          sa = 9;
+          sh = 8;
+        }
+      }
+    }
+
+    setScoreH(sh);
+    setScoreA(sa);
+
+    const nextOU = sh + sa >= 3 ? "over" : "under";
+    setOverUnder(nextOU);
+
+    const nextBTTS = sh > 0 && sa > 0 ? "yes" : "no";
+    setBtts(nextBTTS);
+
+    if (sh === 0 && sa === 0) {
+      setFirstGoal("none");
+    } else if (sh > 0 && sa === 0) {
+      setFirstGoal("home");
+    } else if (sh === 0 && sa > 0) {
+      setFirstGoal("away");
+    } else {
+      setFirstGoal((prev) => (prev === "none" ? "home" : prev));
+    }
+  };
+
+  const updateOverUnder = (ou: "over" | "under") => {
+    setOverUnder(ou);
+    let sh = scoreH;
+    let sa = scoreA;
+
+    if (ou === "under") {
+      if (sh + sa >= 3) {
+        if (winner === "home") {
+          sh = 2; sa = 0;
+        } else if (winner === "draw") {
+          sh = 1; sa = 1;
+        } else {
+          sh = 0; sa = 2;
+        }
+      }
+    } else {
+      if (sh + sa < 3) {
+        if (winner === "home") {
+          sh = 2; sa = 1;
+        } else if (winner === "draw") {
+          sh = 2; sa = 2;
+        } else {
+          sh = 1; sa = 2;
+        }
+      }
+    }
+
+    setScoreH(sh);
+    setScoreA(sa);
+
+    const nextBTTS = sh > 0 && sa > 0 ? "yes" : "no";
+    setBtts(nextBTTS);
+
+    if (sh === 0 && sa === 0) {
+      setFirstGoal("none");
+    } else if (sh > 0 && sa === 0) {
+      setFirstGoal("home");
+    } else if (sh === 0 && sa > 0) {
+      setFirstGoal("away");
+    } else {
+      setFirstGoal((prev) => (prev === "none" ? "home" : prev));
+    }
+  };
+
+  const updateBtts = (b: "yes" | "no") => {
+    setBtts(b);
+    let sh = scoreH;
+    let sa = scoreA;
+
+    if (b === "yes") {
+      if (sh === 0 || sa === 0) {
+        if (winner === "home") {
+          sh = Math.max(2, sh);
+          sa = 1;
+        } else if (winner === "draw") {
+          sh = Math.max(1, sh);
+          sa = sh;
+        } else {
+          sh = 1;
+          sa = Math.max(2, sa);
+        }
+      }
+    } else {
+      if (sh > 0 && sa > 0) {
+        if (winner === "home") {
+          sa = 0;
+        } else if (winner === "draw") {
+          sh = 0; sa = 0;
+        } else {
+          sh = 0;
+        }
+      }
+    }
+
+    setScoreH(sh);
+    setScoreA(sa);
+
+    const nextOU = sh + sa >= 3 ? "over" : "under";
+    setOverUnder(nextOU);
+
+    if (sh === 0 && sa === 0) {
+      setFirstGoal("none");
+    } else if (sh > 0 && sa === 0) {
+      setFirstGoal("home");
+    } else if (sh === 0 && sa > 0) {
+      setFirstGoal("away");
+    } else {
+      setFirstGoal((prev) => (prev === "none" ? "home" : prev));
+    }
+  };
+
+  const updateFirstGoal = (fg: "home" | "away" | "none") => {
+    setFirstGoal(fg);
+    let sh = scoreH;
+    let sa = scoreA;
+
+    if (fg === "none") {
+      sh = 0; sa = 0;
+      setWinner("draw");
+      setOverUnder("under");
+      setBtts("no");
+    } else if (fg === "home") {
+      if (sh === 0) {
+        sh = 1;
+        let nextWinner: "home" | "draw" | "away" = "draw";
+        if (sh > sa) nextWinner = "home";
+        else if (sh < sa) nextWinner = "away";
+        setWinner(nextWinner);
+        setOverUnder(sh + sa >= 3 ? "over" : "under");
+        setBtts(sh > 0 && sa > 0 ? "yes" : "no");
+      }
+    } else if (fg === "away") {
+      if (sa === 0) {
+        sa = 1;
+        let nextWinner: "home" | "draw" | "away" = "draw";
+        if (sh > sa) nextWinner = "home";
+        else if (sh < sa) nextWinner = "away";
+        setWinner(nextWinner);
+        setOverUnder(sh + sa >= 3 ? "over" : "under");
+        setBtts(sh > 0 && sa > 0 ? "yes" : "no");
+      }
+    }
+
+    setScoreH(sh);
+    setScoreA(sa);
+  };
+
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [txState, setTxState] = useState<"idle" | "locking" | "claiming" | "claimed" | "locked">("idle");
-  const [showClaimToast, setShowClaimToast] = useState(false);
   const [txError, setTxError] = useState<string | null>(null);
 
   const draftReady: DraftPrediction = {
@@ -75,11 +289,18 @@ function MatchDetail() {
   }, [pred, txState]);
 
   useEffect(() => {
-    if (!wallet || pred?.txHash) return;
+    if (!wallet || (pred?.txHash && result)) return;
     void recoverPrediction(match.id).catch((error) => {
       console.warn("Could not recover locked prediction from X Layer.", error);
     });
-  }, [match.id, pred?.txHash, recoverPrediction, wallet]);
+  }, [match.id, pred?.txHash, recoverPrediction, result, wallet]);
+
+  useEffect(() => {
+    if (!pred || result || pred.id.startsWith("chain_")) return;
+    void hydratePredictionById(pred.id).catch((error) => {
+      console.warn("Could not refresh resolved prediction memory.", error);
+    });
+  }, [hydratePredictionById, pred, result]);
 
   const h = hash(match.id);
   const homePct = 25 + (h % 40);
@@ -110,11 +331,19 @@ function MatchDetail() {
 
   async function handleClaim() {
     if (!pred) return;
+    setTxError(null);
     setTxState("claiming");
-    await new Promise((r) => setTimeout(r, 900));
-    claimPrediction(pred.id);
-    setTxState("claimed");
-    setShowClaimToast(true);
+    try {
+      const claimedPrediction = await claimPrediction(pred.id);
+      setTxState("claimed");
+      await router.navigate({
+        to: "/verdict/$predictionId",
+        params: { predictionId: claimedPrediction?.id ?? pred.id },
+      });
+    } catch (err) {
+      setTxState("locked");
+      setTxError(err instanceof Error ? err.message : "Claim failed. Check the transaction and try again.");
+    }
   }
 
   // After onboarding completes, if a draft exists, lock automatically (with
@@ -131,8 +360,8 @@ function MatchDetail() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
-      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:py-12 lg:py-16">
-        <div className="mb-8 flex items-center justify-between">
+      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:py-24">
+        <div className="mb-10 flex items-center justify-between">
           <Link to="/matches" className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground hover:text-foreground">
             ← Matchboard
           </Link>
@@ -143,47 +372,47 @@ function MatchDetail() {
         <section className="relative overflow-hidden rounded-3xl border border-border bg-surface">
           <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-60" />
           <div className="pointer-events-none absolute inset-0 bg-scanline opacity-40" />
-          <div className="relative grid items-center gap-5 px-5 py-8 sm:gap-6 sm:px-8 sm:py-12 md:grid-cols-[1fr_auto_1fr] md:px-14 md:py-16">
+          <div className="relative grid items-center gap-8 px-6 py-10 sm:gap-10 sm:px-10 sm:py-14 md:grid-cols-[1fr_auto_1fr] md:px-16 md:py-20">
             <TeamBig team={match.home} align="right" score={result?.homeScore ?? match.score?.home} />
-            <div className="flex flex-col items-center gap-3">
+            <div className="flex flex-col items-center gap-4 py-4 md:py-0">
               {result ? (
-                <span className="rounded-full bg-primary/15 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
+                <span className="rounded-full bg-primary/15 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
                   Full time
                 </span>
               ) : isLive ? (
-                <span className="flex items-center gap-1.5 rounded-full bg-red-card/15 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-red-card">
-                  <span className="live-dot h-1.5 w-1.5 rounded-full bg-red-card" />
+                <span className="flex items-center gap-1.5 rounded-full bg-primary/15 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
+                  <span className="live-dot h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                   Live · {match.minute}'
                 </span>
               ) : (
-                <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
+                <span className="rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
                   Kickoff · {time}
                 </span>
               )}
-              <div className="font-display text-5xl tracking-tight text-muted-foreground md:text-6xl">vs</div>
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{day}</span>
+              <div className="font-display text-5xl tracking-tight text-muted-foreground md:text-6xl my-1">vs</div>
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground text-center">{day}</span>
             </div>
             <TeamBig team={match.away} align="left" score={result?.awayScore ?? match.score?.away} />
           </div>
-          <div className="relative flex flex-wrap items-center justify-between gap-3 border-t border-hairline px-5 py-3.5 sm:px-8 md:px-14">
+          <div className="relative flex flex-wrap items-center justify-between gap-4 border-t border-hairline px-6 py-5 sm:px-10 md:px-16">
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{match.venue}</span>
             <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-              {statusPill} · <span className="text-primary">{match.callsLocked.toLocaleString()}</span> calls on X Layer
+              {statusPill} · <span className="text-primary font-semibold">{match.callsLocked.toLocaleString()}</span> calls on X Layer
             </span>
           </div>
         </section>
 
-        <div className="mt-6 grid gap-5 sm:mt-10 lg:grid-cols-[1.4fr_1fr]">
-          <section className="rounded-3xl border border-border bg-surface p-5 sm:p-7 md:p-9">
+        <div className="mt-8 grid gap-8 sm:mt-12 lg:grid-cols-[1.4fr_1fr] lg:gap-10">
+          <section className="rounded-3xl border border-border bg-surface p-6 sm:p-8 md:p-12">
             {showForm ? (
               <FormPanel
                 match={match}
-                winner={winner} setWinner={setWinner}
-                scoreH={scoreH} setScoreH={setScoreH}
-                scoreA={scoreA} setScoreA={setScoreA}
-                overUnder={overUnder} setOverUnder={setOverUnder}
-                btts={btts} setBtts={setBtts}
-                firstGoal={firstGoal} setFirstGoal={setFirstGoal}
+                winner={winner} setWinner={updateWinner}
+                scoreH={scoreH} setScoreH={updateScoreH}
+                scoreA={scoreA} setScoreA={updateScoreA}
+                overUnder={overUnder} setOverUnder={updateOverUnder}
+                btts={btts} setBtts={updateBtts}
+                firstGoal={firstGoal} setFirstGoal={updateFirstGoal}
                 disabled={kickoffPassed}
                 kickoffPassed={kickoffPassed}
                 wallet={wallet}
@@ -200,6 +429,7 @@ function MatchDetail() {
                 result={result}
                 onClaim={handleClaim}
                 claiming={txState === "claiming"}
+                error={txError}
               />
             ) : pred ? (
               <LockedPanel match={match} prediction={pred} isLive={isLive} />
@@ -233,7 +463,7 @@ function MatchDetail() {
             <div className="rounded-3xl border border-border bg-surface p-5 sm:p-6">
               <h3 className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Onchain proof</h3>
               <p className="mt-3 text-sm text-muted-foreground">
-                Every call is hashed and signed on X Layer at kickoff. No edits, no excuses.
+                This call was locked on X Layer before kickoff and cannot be edited.
               </p>
               <div className="mt-4 rounded-xl bg-background p-3 font-mono text-[10px] text-muted-foreground">
                 {pred ? `${pred.txHash.slice(0, 12)}…${pred.txHash.slice(-6)}` : `0xkb…${match.id.replace("-", "").slice(-6)}c4`}
@@ -248,10 +478,6 @@ function MatchDetail() {
         onClose={() => setShowOnboarding(false)}
         onComplete={onboardingComplete}
       />
-
-      {showClaimToast && pred?.claimed && (
-        <ClaimCelebration prediction={pred} match={match} onClose={() => setShowClaimToast(false)} />
-      )}
 
       <Footer />
     </div>
@@ -350,11 +576,11 @@ function FormPanel({
 
   if (kickoffPassed) {
     return (
-      <div className="text-center py-6">
+      <div className="text-center py-10 space-y-5">
         <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-red-card">Predictions closed</span>
-        <h2 className="mt-2 font-display text-3xl tracking-tight">You needed to lock before kickoff.</h2>
-        <p className="mt-2 text-sm text-muted-foreground">Catch the next match — calls open as soon as kickoff is set.</p>
-        <Link to="/matches" className="mt-5 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">
+        <h2 className="font-display text-3xl tracking-tight sm:text-4xl">You needed to lock before kickoff.</h2>
+        <p className="max-w-md mx-auto text-sm text-muted-foreground leading-relaxed">Catch the next match — calls open as soon as kickoff is set.</p>
+        <Link to="/matches" className="inline-flex rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 shadow-lg shadow-primary/10">
           Back to matchboard
         </Link>
       </div>
@@ -362,14 +588,14 @@ function FormPanel({
   }
 
   return (
-    <>
-      <div className="mb-6 flex items-baseline justify-between">
+    <div className="space-y-8 sm:space-y-10">
+      <div className="flex items-baseline justify-between gap-4 border-b border-border/40 pb-5">
         <div>
           <h2 className="font-display text-2xl tracking-tight md:text-3xl">Make your call</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Lock before kickoff. Once it's on X Layer, it cannot be edited.</p>
+          <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">Lock before kickoff. Once it's on X Layer, it cannot be edited.</p>
         </div>
         {hasDraft && (
-          <button type="button" onClick={onClearDraft} className="font-sans text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={onClearDraft} className="shrink-0 font-sans text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground">
             Clear draft
           </button>
         )}
@@ -382,22 +608,18 @@ function FormPanel({
       </PickGroup>
 
       <PickGroup label="Correct score · +200 IQ" cols={2}>
-        {/* cols container */}
-          <ScoreStepper label={match.home.code} value={scoreH} onChange={setScoreH} disabled={disabled} />
-          <ScoreStepper label={match.away.code} value={scoreA} onChange={setScoreA} disabled={disabled} />
-        {/* end cols container */}
+        <ScoreStepper label={match.home.code} value={scoreH} onChange={setScoreH} disabled={disabled} />
+        <ScoreStepper label={match.away.code} value={scoreA} onChange={setScoreA} disabled={disabled} />
       </PickGroup>
 
       <PickGroup label="Total goals" cols={2}>
         <CallButton label="Over" sub="2.5+ goals" active={overUnder === "over"} onClick={() => setOverUnder("over")} disabled={disabled} />
         <CallButton label="Under" sub="Up to 2 goals" active={overUnder === "under"} onClick={() => setOverUnder("under")} disabled={disabled} />
-        {/* spacer deleted */}
       </PickGroup>
 
       <PickGroup label="Both teams to score" cols={2}>
         <CallButton label="Yes" sub="Both find net" active={btts === "yes"} onClick={() => setBtts("yes")} disabled={disabled} />
         <CallButton label="No" sub="At least one clean sheet" active={btts === "no"} onClick={() => setBtts("no")} disabled={disabled} />
-        {/* spacer deleted */}
       </PickGroup>
 
       <PickGroup label="First team to score" cols={3}>
@@ -407,70 +629,70 @@ function FormPanel({
       </PickGroup>
 
       {/* Point Breakdown Accordion */}
-      <div className="mt-6 rounded-2xl border border-border bg-surface-elevated/30 overflow-hidden">
+      <div className="rounded-2xl border border-border bg-surface-elevated/30 overflow-hidden">
         <button
           type="button"
           onClick={() => setShowScoring(!showScoring)}
-          className="flex w-full items-center justify-between px-5 py-4 text-left font-sans text-xs font-semibold uppercase tracking-wider text-foreground hover:bg-surface-elevated/50 transition-colors"
+          className="flex w-full items-center justify-between px-5 py-4 text-left font-sans text-xs font-semibold uppercase tracking-wider text-foreground hover:bg-surface-elevated/55 transition-colors"
         >
           <span>Point Breakdown</span>
-          <span className="text-muted-foreground text-sm">{showScoring ? "−" : "+"}</span>
+          <span className="text-muted-foreground text-sm font-bold">{showScoring ? "−" : "+"}</span>
         </button>
         {showScoring && (
           <div className="border-t border-border/30 px-5 py-4 bg-background/25 text-xs text-muted-foreground space-y-2 font-mono">
-            <div className="flex justify-between"><span>Winner Correct</span><span className="text-primary font-bold">+50 IQ</span></div>
-            <div className="flex justify-between"><span>Exact Score</span><span className="text-primary font-bold">+200 IQ</span></div>
-            <div className="flex justify-between"><span>Over/Under Goals</span><span className="text-primary font-bold">+40 IQ</span></div>
-            <div className="flex justify-between"><span>Both Teams to Score</span><span className="text-primary font-bold">+40 IQ</span></div>
-            <div className="flex justify-between"><span>First Team to Score</span><span className="text-primary font-bold">+60 IQ</span></div>
-            <div className="flex justify-between border-t border-border/30 pt-2 text-foreground">
+            <div className="flex justify-between font-mono"><span>Winner Correct</span><span className="text-primary font-bold">+50 IQ</span></div>
+            <div className="flex justify-between font-mono"><span>Exact Score</span><span className="text-primary font-bold">+200 IQ</span></div>
+            <div className="flex justify-between font-mono"><span>Over/Under Goals</span><span className="text-primary font-bold">+40 IQ</span></div>
+            <div className="flex justify-between font-mono"><span>Both Teams to Score</span><span className="text-primary font-bold">+40 IQ</span></div>
+            <div className="flex justify-between font-mono"><span>First Team to Score</span><span className="text-primary font-bold">+60 IQ</span></div>
+            <div className="flex justify-between border-t border-border/30 pt-2 text-foreground font-mono">
               <span>3/5 Strong Call Bonus</span><span className="text-glow-green font-bold">+50 IQ</span>
             </div>
-            <div className="flex justify-between text-foreground">
+            <div className="flex justify-between text-foreground font-mono">
               <span>4/5 Sharp Call Bonus</span><span className="text-glow-green font-bold">+100 IQ</span>
             </div>
-            <div className="flex justify-between text-foreground">
+            <div className="flex justify-between text-foreground font-mono">
               <span>5/5 Perfect Slate Bonus</span><span className="text-glow-green font-bold">+200 IQ</span>
             </div>
           </div>
         )}
       </div>
 
-      <div className="mt-6 rounded-2xl border border-hairline bg-background p-5">
+      <div className="rounded-2xl border border-hairline bg-background p-5 sm:p-6">
         <span className="font-sans text-xs font-semibold uppercase tracking-wider text-primary">Your call</span>
-        <ul className="mt-2 grid gap-1 text-sm md:grid-cols-2">
+        <ul className="mt-3 grid gap-2 text-sm md:grid-cols-2">
           {describePrediction({ matchId: match.id, winner, homeScore: scoreH, awayScore: scoreA, overUnder, btts, firstGoal, createdAt: 0 }, match)
-            .map((l) => <li key={l}>{l}</li>)}
+            .map((l) => <li key={l} className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary/60" />{l}</li>)}
         </ul>
       </div>
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-2">
+        <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground max-w-xs leading-relaxed">
           {wallet ? "X Layer transaction · cannot be edited after lock" : "wallet connects on lock · draft is saved"}
         </div>
         <button
           type="button"
           disabled={disabled || txState === "locking"}
           onClick={onLock}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:bg-surface-elevated disabled:text-muted-foreground"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:bg-surface-elevated disabled:text-muted-foreground shadow-lg shadow-primary/10"
         >
           {txState === "locking" ? "Locking on X Layer…" : "Lock my call →"}
         </button>
       </div>
       {txError && (
-        <p className="mt-4 rounded-xl border border-red-card/30 bg-red-card/10 p-3 text-sm text-red-card">
+        <p className="rounded-xl border border-red-card/30 bg-red-card/10 p-4 text-sm text-red-card leading-relaxed">
           {txError}
         </p>
       )}
-    </>
+    </div>
   );
 }
 
 function PickGroup({ label, cols = 3, children }: { label: string; cols?: 2 | 3; children: React.ReactNode }) {
   return (
-    <div className="mt-6">
-      <div className="mb-2 font-sans text-sm font-semibold text-muted-foreground">{label}</div>
-      <div className={`grid gap-3 ${cols === 2 ? "grid-cols-2" : "grid-cols-3"}`}>{children}</div>
+    <div className="space-y-3.5 sm:space-y-4">
+      <div className="font-sans text-sm font-semibold text-muted-foreground">{label}</div>
+      <div className={`grid gap-3 sm:gap-4 ${cols === 2 ? "grid-cols-2" : "grid-cols-3"}`}>{children}</div>
     </div>
   );
 }
@@ -478,67 +700,73 @@ function PickGroup({ label, cols = 3, children }: { label: string; cols?: 2 | 3;
 function LockedPanel({ match, prediction, isLive }: { match: Match; prediction: Prediction; isLive: boolean }) {
   const lines = describePrediction(prediction, match);
   return (
-    <>
-      <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Locked on X Layer</span>
-      <h2 className="mt-2 font-display text-3xl tracking-tight md:text-4xl">Your call is locked.</h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        {isLive ? "Match in progress. Results will be scored after full time." : "Waiting for kickoff. Nothing can change now."}
-      </p>
-      <div className="mt-6 rounded-2xl border border-hairline bg-background p-5">
-        <ul className="grid gap-1 text-sm md:grid-cols-2">
-          {lines.map((l) => <li key={l}>{l}</li>)}
+    <div className="space-y-6 sm:space-y-8">
+      <div>
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Locked on X Layer</span>
+        <h2 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl text-glow-green">Your call is locked.</h2>
+        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+          {isLive ? "Match in progress. Results will be scored after full time." : "Waiting for kickoff. Nothing can change now."}
+        </p>
+      </div>
+      <div className="rounded-2xl border border-hairline bg-background p-5 sm:p-6">
+        <span className="font-sans text-xs font-semibold uppercase tracking-wider text-muted-foreground">Locked choices</span>
+        <ul className="mt-3 grid gap-2 text-sm md:grid-cols-2">
+          {lines.map((l) => <li key={l} className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500/60" />{l}</li>)}
         </ul>
       </div>
-      <dl className="mt-5 grid grid-cols-2 gap-3 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-        <div className="rounded-xl border border-hairline bg-background p-3">
+      <dl className="grid grid-cols-2 gap-4 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+        <div className="rounded-xl border border-hairline bg-background p-4 space-y-1">
           <dt>Wallet</dt>
-          <dd className="mt-1 text-foreground normal-case tracking-normal">{shortAddress(prediction.wallet)}</dd>
+          <dd className="text-foreground normal-case tracking-normal text-xs">{shortAddress(prediction.wallet)}</dd>
         </div>
-        <div className="rounded-xl border border-hairline bg-background p-3">
+        <div className="rounded-xl border border-hairline bg-background p-4 space-y-1">
           <dt>Tx hash</dt>
-          <dd className="mt-1 text-foreground normal-case tracking-normal">
+          <dd className="text-foreground normal-case tracking-normal text-xs overflow-hidden text-ellipsis">
             {prediction.txHash ? `${prediction.txHash.slice(0, 10)}...${prediction.txHash.slice(-6)}` : "Recovered from contract"}
           </dd>
         </div>
       </dl>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <Link to="/proof/$predictionId" params={{ predictionId: prediction.id }} className="rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:brightness-110">
+      <div className="flex flex-wrap gap-3 pt-2">
+        <Link to="/proof/$predictionId" params={{ predictionId: prediction.id }} className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:brightness-110 shadow-lg shadow-primary/10 transition">
           View proof →
         </Link>
-        <Link to="/matches" className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-elevated">
+        <Link to="/matches" className="rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground hover:bg-surface-elevated transition">
           Back to matchboard
         </Link>
         {prediction.txHash && (
-          <a href={explorerTxUrl(prediction.txHash)} target="_blank" rel="noreferrer" className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-surface-elevated">
+          <a href={explorerTxUrl(prediction.txHash)} target="_blank" rel="noreferrer" className="rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground hover:bg-surface-elevated transition">
             View on explorer
           </a>
         )}
       </div>
-    </>
+    </div>
   );
 }
 
 function ResolvedPanel({
-  match, prediction, result, onClaim, claiming,
-}: { match: Match; prediction: Prediction; result: MatchResult; onClaim: () => void; claiming: boolean }) {
+  match, prediction, result, onClaim, claiming, error,
+}: { match: Match; prediction: Prediction; result: MatchResult; onClaim: () => void; claiming: boolean; error: string | null }) {
   const lines = describePrediction(prediction, match);
   const claimed = prediction.claimed;
 
   return (
-    <>
-      <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Result available</span>
-      <h2 className="mt-2 font-display text-3xl tracking-tight md:text-4xl">
-        {claimed ? "Ball IQ claimed." : "Your reward is waiting."}
-      </h2>
-      <p className="mt-2 text-sm text-muted-foreground">
-        Final score · {result.homeScore} – {result.awayScore} {match.home.code} / {match.away.code}.
-      </p>
+    <div className="space-y-6 sm:space-y-8">
+      <div>
+        <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Result available</span>
+        <h2 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl text-glow-green">
+          {claimed ? "Ball IQ claimed." : "Your reward is waiting."}
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+          Final score · {result.homeScore} – {result.awayScore} {match.home.code} / {match.away.code}.
+        </p>
+      </div>
 
       {prediction.breakdown && (
-        <div className="mt-6 rounded-2xl border border-hairline bg-background p-5">
+        <div className="rounded-2xl border border-hairline bg-background p-5 sm:p-6">
+          <span className="font-sans text-xs font-semibold uppercase tracking-wider text-muted-foreground border-b border-border/40 pb-2 block mb-2">verdict breakdown</span>
           <ul className="divide-y divide-hairline">
             {prediction.breakdown.map((b) => (
-              <li key={b.label} className="flex items-center justify-between py-2.5 text-sm">
+              <li key={b.label} className="flex items-center justify-between py-3 text-sm">
                 <span className="flex items-center gap-2">
                   <span className={`h-2 w-2 rounded-full ${b.ok ? "bg-primary" : "bg-red-card/60"}`} />
                   {b.label}
@@ -548,9 +776,9 @@ function ResolvedPanel({
                 </span>
               </li>
             ))}
-            <li className="flex items-center justify-between pt-3">
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Total</span>
-              <span className="font-display text-3xl tracking-tight text-primary">
+            <li className="flex items-center justify-between pt-4">
+              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary font-semibold">Total Claimed</span>
+              <span className="font-display text-3xl tracking-tight text-primary text-glow-green font-bold">
                 +{prediction.pointsEarned} Ball IQ
               </span>
             </li>
@@ -559,189 +787,38 @@ function ResolvedPanel({
       )}
 
       {!claimed && (
-        <div className="mt-6 rounded-2xl border border-hairline bg-background p-5">
-          <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Your call</span>
-          <ul className="mt-2 grid gap-1 text-sm md:grid-cols-2">
-            {lines.map((l) => <li key={l}>{l}</li>)}
+        <div className="rounded-2xl border border-hairline bg-background p-5 sm:p-6">
+          <span className="font-sans text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your locked choices</span>
+          <ul className="mt-3 grid gap-2 text-sm md:grid-cols-2">
+            {lines.map((l) => <li key={l} className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-primary/60" />{l}</li>)}
           </ul>
         </div>
       )}
 
-      <div className="mt-6 flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 pt-2">
         {!claimed ? (
           <button
             type="button"
             disabled={claiming}
             onClick={onClaim}
-            className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:brightness-110 disabled:bg-surface-elevated disabled:text-muted-foreground"
+            className="rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground hover:brightness-110 disabled:bg-surface-elevated disabled:text-muted-foreground shadow-lg shadow-primary/10 transition"
           >
             {claiming ? "Claiming Ball IQ…" : "Claim Ball IQ →"}
           </button>
         ) : (
-          <Link to="/proof/$predictionId" params={{ predictionId: prediction.id }} className="rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:brightness-110">
+          <Link to="/proof/$predictionId" params={{ predictionId: prediction.id }} className="rounded-full bg-primary px-8 py-3.5 text-sm font-semibold text-primary-foreground hover:brightness-110 shadow-lg shadow-primary/10 transition font-mono uppercase tracking-wider text-xs">
             Share proof →
           </Link>
         )}
-        <Link to="/leaderboard" className="rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground hover:bg-surface-elevated">
+        <Link to="/leaderboard" className="rounded-full border border-border bg-background px-6 py-3.5 text-sm font-semibold text-foreground hover:bg-surface-elevated transition">
           View leaderboard
         </Link>
       </div>
-    </>
-  );
-}
-
-function ClaimCelebration({
-  prediction, match, onClose,
-}: { prediction: Prediction; match: Match; onClose: () => void }) {
-  const router = useRouter();
-  const unlockedBadgesList = prediction.badges || (prediction.badge ? [prediction.badge] : []);
-
-  // Map unlocked badge names to their metadata
-  const unlockedBadges = BADGES.filter(b => unlockedBadgesList.includes(b.name));
-  const readTier = unlockedBadges.find((b) =>
-    ["strong-call", "sharp-call", "perfect-slate"].includes(b.id)
-  );
-  const tierLead =
-    readTier?.id === "strong-call" ? "Three reads landed. You knew the shape of the match." :
-    readTier?.id === "sharp-call" ? "Four out of five. One detail away from perfection." :
-    readTier?.id === "perfect-slate" ? "Every detail landed. No edits. No excuses." :
-    null;
-
-  // Check if the demo match cleared the full five-read board.
-  const isPerfectJapan = match.home.code === "BRA" && match.away.code === "JPN" &&
-    (prediction.pointsEarned ?? 0) >= 590;
-
-  // Categorize badges
-  const categories = Object.entries(BADGE_GROUPS).map(([catName, badgeIds]) => {
-    const badgesInCat = unlockedBadges.filter(b => badgeIds.includes(b.id));
-    return { name: catName, badges: badgesInCat };
-  }).filter(c => c.badges.length > 0);
-
-  const shareText = `I just claimed ${prediction.pointsEarned} Ball IQ and unlocked badges: ${unlockedBadges.map(b => b.name).join(", ")} on KnewBall!`;
-  const xShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4 backdrop-blur-xl animate-fade-in">
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-primary/30 bg-surface/95 shadow-2xl ring-pitch p-6 sm:p-10">
-        <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-30" />
-
-        {/* Cinematic ambient glow background */}
-        <div className="absolute -left-20 -top-20 h-64 w-64 rounded-full bg-primary/20 blur-[100px]" />
-        <div className="absolute -right-20 -bottom-20 h-64 w-64 rounded-full bg-emerald-500/10 blur-[100px]" />
-
-        <div className="relative flex flex-col items-center text-center">
-          {/* Header */}
-          {isPerfectJapan ? (
-            <div className="mb-4">
-              <span className="inline-block rounded-full bg-primary/10 border border-primary/20 px-4 py-1 text-xs font-mono tracking-widest text-primary animate-pulse">
-                THE PERFECT SLATE
-              </span>
-              <h2 className="mt-3 font-display text-3xl tracking-tight sm:text-4xl md:text-5xl text-primary text-glow-green">
-                you cleared the board
-              </h2>
-              <p className="mt-2 text-sm text-muted-foreground font-mono">
-                on Brazil vs Japan
-              </p>
-            </div>
-          ) : (
-            <div className="mb-4">
-              <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
-                {readTier?.name ?? "matchday verdict"}
-              </span>
-              <h2 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl">
-                {readTier ? `${readTier.name}.` : "fixture complete"}
-              </h2>
-              <p className="mt-1 text-sm text-muted-foreground font-mono">
-                {tierLead ?? `${match.home.name} vs ${match.away.name}`}
-              </p>
-            </div>
-          )}
-
-          {/* Points Claimed */}
-          <div className="my-6 rounded-2xl border border-primary/20 bg-primary/5 px-8 py-5 backdrop-blur-sm relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground block">ball iq claimed</span>
-            <div className="mt-1 font-display text-4xl sm:text-6xl text-glow-green font-bold tracking-tight">
-              +{prediction.pointsEarned}
-            </div>
-          </div>
-
-          {/* Badges Unlocked Section */}
-          {unlockedBadges.length > 0 ? (
-            <div className="w-full text-left mt-4 mb-8">
-              <h3 className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground border-b border-border/40 pb-2 mb-4">
-                badges unlocked
-              </h3>
-
-              <div className="space-y-6 max-h-[300px] overflow-y-auto pr-2">
-                {categories.map(cat => (
-                  <div key={cat.name} className="space-y-3">
-                    <h4 className="font-mono text-[9px] uppercase tracking-[0.25em] text-primary/85">
-                      {cat.name}
-                    </h4>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {cat.badges.map(badge => (
-                        <div key={badge.id} className="flex items-center gap-3 rounded-xl border border-border/40 bg-surface-elevated/40 p-3 hover:border-primary/30 transition-colors">
-                          <BadgeIcon id={badge.id} className="h-6 w-6" />
-                          <div>
-                            <div className="font-semibold text-xs text-foreground font-display">{badge.name}</div>
-                            <div className="text-[10px] text-muted-foreground">{badge.description}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <p className="mt-2 text-xs text-muted-foreground font-mono mb-8">
-              No new badges unlocked this matchday.
-            </p>
-          )}
-
-          {/* Actions */}
-          <div className="flex flex-wrap justify-center gap-3 w-full border-t border-border/40 pt-6">
-            <a
-              href={xShareUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-1 min-w-[140px] text-center rounded-full bg-primary px-5 py-3 text-xs font-semibold text-primary-foreground hover:brightness-110 transition-all font-mono uppercase tracking-wider"
-            >
-              share collection to X
-            </a>
-            <button
-              onClick={() => {
-                onClose();
-                router.navigate({ to: "/proof/$predictionId", params: { predictionId: prediction.id } });
-              }}
-              className="flex-1 min-w-[140px] rounded-full border border-border bg-background px-5 py-3 text-xs font-semibold text-foreground hover:bg-surface-elevated transition-all font-mono uppercase tracking-wider"
-            >
-              view proof
-            </button>
-            <button
-              onClick={() => {
-                onClose();
-                router.navigate({ to: "/profile/$wallet", params: { wallet: prediction.wallet } });
-              }}
-              className="flex-1 min-w-[140px] rounded-full border border-border bg-background px-5 py-3 text-xs font-semibold text-foreground hover:bg-surface-elevated transition-all font-mono uppercase tracking-wider"
-            >
-              view profile
-            </button>
-          </div>
-
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="Close"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-
-        </div>
-      </div>
+      {error && (
+        <p className="rounded-xl border border-red-card/30 bg-red-card/10 p-4 text-sm text-red-card leading-relaxed">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

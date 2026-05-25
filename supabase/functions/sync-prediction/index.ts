@@ -90,7 +90,7 @@ Deno.serve(async (request) => {
       target_contract_address: contractAddress,
       target_network: network,
     });
-    if (syncError) throw syncError;
+    if (syncError) throw new Error(syncError.message ?? JSON.stringify(syncError));
 
     const synced = Array.isArray(syncedRows) ? syncedRows[0] : syncedRows;
     return jsonResponse({
@@ -107,7 +107,7 @@ Deno.serve(async (request) => {
     });
   } catch (error) {
     console.error(error);
-    return jsonResponse({ error: error instanceof Error ? error.message : "Prediction sync failed." }, 500);
+    return jsonResponse({ error: error instanceof Error ? error.message : String(error) }, 500);
   }
 });
 
@@ -121,36 +121,44 @@ function matchesContractPrediction(
   contractPrediction: readonly [number, number, number, number, number, number, bigint, bigint, boolean, boolean],
   submitted: ReturnType<typeof decodeSubmittedPrediction>,
 ) {
-  return BigInt(contractPrediction[0]) === submitted.winner &&
-    BigInt(contractPrediction[1]) === submitted.homeScore &&
-    BigInt(contractPrediction[2]) === submitted.awayScore &&
-    BigInt(contractPrediction[3]) === submitted.totalGoals &&
-    BigInt(contractPrediction[4]) === submitted.bothTeamsScored &&
-    BigInt(contractPrediction[5]) === submitted.firstGoal;
+  return numeric(contractPrediction[0]) === numeric(submitted.winner) &&
+    numeric(contractPrediction[1]) === numeric(submitted.homeScore) &&
+    numeric(contractPrediction[2]) === numeric(submitted.awayScore) &&
+    numeric(contractPrediction[3]) === numeric(submitted.totalGoals) &&
+    numeric(contractPrediction[4]) === numeric(submitted.bothTeamsScored) &&
+    numeric(contractPrediction[5]) === numeric(submitted.firstGoal);
 }
 
-function winnerPick(value: bigint) {
-  if (value === 0n) return "home";
-  if (value === 1n) return "draw";
-  if (value === 2n) return "away";
+function numeric(value: number | bigint) {
+  return typeof value === "bigint" ? Number(value) : value;
+}
+
+function winnerPick(value: number | bigint) {
+  const pick = numeric(value);
+  if (pick === 0) return "home";
+  if (pick === 1) return "draw";
+  if (pick === 2) return "away";
   throw new Error("Invalid winner pick.");
 }
 
-function totalGoalsPick(value: bigint) {
-  if (value === 0n) return "under";
-  if (value === 1n) return "over";
+function totalGoalsPick(value: number | bigint) {
+  const pick = numeric(value);
+  if (pick === 0) return "under";
+  if (pick === 1) return "over";
   throw new Error("Invalid total goals pick.");
 }
 
-function binaryPick(value: bigint) {
-  if (value === 0n) return "no";
-  if (value === 1n) return "yes";
+function binaryPick(value: number | bigint) {
+  const pick = numeric(value);
+  if (pick === 0) return "no";
+  if (pick === 1) return "yes";
   throw new Error("Invalid binary pick.");
 }
 
-function firstGoalPick(value: bigint) {
-  if (value === 0n) return "home";
-  if (value === 1n) return "away";
-  if (value === 2n) return "none";
+function firstGoalPick(value: number | bigint) {
+  const pick = numeric(value);
+  if (pick === 0) return "home";
+  if (pick === 1) return "away";
+  if (pick === 2) return "none";
   throw new Error("Invalid first goal pick.");
 }

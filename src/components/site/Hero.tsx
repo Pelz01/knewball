@@ -12,7 +12,7 @@ export function Hero() {
   const statLoop = [...heroStats, ...heroStats];
 
   return (
-    <section className="relative isolate overflow-hidden border-b border-border">
+    <section className="relative isolate overflow-hidden border-b border-border min-h-[85vh] lg:min-h-0 flex flex-col justify-center">
       <img
         src={heroImg}
         alt=""
@@ -29,30 +29,32 @@ export function Hero() {
       <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-50" />
       <div className="pointer-events-none absolute inset-0 bg-scanline" />
 
-      <div className="relative mx-auto max-w-7xl px-4 pb-14 pt-8 sm:px-6 md:pb-24 md:pt-12">
-        <div className="flex flex-col items-start gap-5 md:gap-8">
-          <h1 className="font-display text-[clamp(2.8rem,9vw,6rem)] leading-[0.92] tracking-tight">
-            <span className="block">Prove you</span>
-            <span className="block">
-              <span className="text-primary text-glow-green">knew</span>
-              <span className="text-muted-foreground/40"> · </span>
-              ball
-            </span>
-            <span className="block text-white">before kickoff.</span>
-          </h1>
+      <div className="relative mx-auto max-w-7xl px-4 pb-16 pt-16 sm:px-6 md:pb-24 md:pt-20 lg:pt-28 w-full flex-1 flex flex-col justify-between">
+        <div className="flex flex-col items-start gap-8 md:gap-10 my-auto">
+          <div className="space-y-6 md:space-y-8">
+            <h1 className="font-display text-[clamp(2.8rem,9vw,6rem)] leading-[0.92] tracking-tight">
+              <span className="block">Prove you</span>
+              <span className="block">
+                <span className="text-primary text-glow-green">knew</span>
+                <span className="text-muted-foreground/40"> · </span>
+                ball
+              </span>
+              <span className="block text-white">before kickoff.</span>
+            </h1>
 
-          <p className="max-w-xl text-sm text-muted-foreground sm:text-base md:text-lg">
-            Lock your World Cup calls onchain. Earn{" "}
-            <span className="font-semibold text-gold">Ball IQ</span> when you're right. Build
-            streaks. Climb your country. Become the fan who saw it coming.
-          </p>
+            <p className="max-w-xl text-sm text-muted-foreground sm:text-base md:text-lg leading-relaxed">
+              Lock your World Cup calls onchain. Earn{" "}
+              <span className="font-semibold text-glow-green text-primary">Ball IQ</span> when you're right. Build
+              form. Climb your country. Become the fan who saw it coming.
+            </p>
+          </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-4">
             <Link
               to="/matches"
               className="group inline-flex items-center gap-2.5 rounded-full bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:brightness-110 sm:px-6 sm:py-3.5"
             >
-              Start predicting
+              Launch app
               <span aria-hidden className="text-base transition group-hover:translate-x-0.5">→</span>
             </Link>
             <Link
@@ -62,12 +64,14 @@ export function Hero() {
               View leaderboard
             </Link>
           </div>
+        </div>
 
+        <div className="w-full mt-14 sm:mt-16 lg:mt-24 space-y-4">
           <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">
             football takes, verified onchain.
           </p>
 
-          <div className="relative mt-2 w-full overflow-hidden rounded-2xl border border-border bg-surface/75 backdrop-blur-md">
+          <div className="relative w-full overflow-hidden rounded-2xl border border-border bg-surface/75 backdrop-blur-md">
             <dl className="ticker-track flex min-w-max whitespace-nowrap">
               {statLoop.map((stat, index) => (
                 <Stat

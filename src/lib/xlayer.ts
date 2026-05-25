@@ -23,9 +23,13 @@ export const ACTIVE_XLAYER =
   import.meta.env.VITE_XLAYER_NETWORK === "mainnet" ? XLAYER_MAINNET : XLAYER_TESTNET;
 
 const KNEWBALL_CUP_ABI = parseAbi([
+  "function claimBallIQ(uint256 matchId)",
   "function submitPrediction(uint256 matchId, uint8 winner, uint8 homeScore, uint8 awayScore, uint8 totalGoals, uint8 bothTeamsScored, uint8 firstGoal)",
+  "function resolveMatch(uint256 matchId, uint8 homeScore, uint8 awayScore, uint8 firstGoal)",
   "function predictions(uint256 matchId, address wallet) view returns (uint8 winner, uint8 homeScore, uint8 awayScore, uint8 totalGoals, uint8 bothTeamsScored, uint8 firstGoal, uint256 lockedAt, uint256 pointsEarned, bool exists, bool claimed)",
+  "function results(uint256 matchId) view returns (uint8 homeScore, uint8 awayScore, uint8 winner, uint8 firstGoal, uint8 bothTeamsScored, uint8 totalGoals, uint256 resolvedAt, bool resolved)",
   "event PredictionSubmitted(address indexed wallet, uint256 indexed matchId, uint256 lockedAt)",
+  "event MatchResolved(uint256 indexed matchId, uint8 homeScore, uint8 awayScore, uint256 resolvedAt)",
 ]);
 
 export type Eip1193Provider = {
@@ -126,6 +130,58 @@ export async function sendPredictionProofTransaction(args: {
       to: knewBallCupAddress(),
       value: "0x0",
       data,
+  }]);
+}
+
+export async function sendResolveMatchTransaction(args: {
+  from: string;
+  matchId: string;
+  homeScore: number;
+  awayScore: number;
+  firstGoal: "home" | "away" | "none";
+}) {
+  const provider = getInjectedProvider();
+  if (!provider) throw new Error("No EVM wallet found.");
+  await ensureXLayerNetwork(provider);
+
+  const data = encodeFunctionData({
+    abi: KNEWBALL_CUP_ABI,
+    functionName: "resolveMatch",
+    args: [
+      matchIdToContractId(args.matchId),
+      args.homeScore,
+      args.awayScore,
+      firstGoalToContractPick(args.firstGoal),
+    ],
+  });
+
+  return requestProvider<string>(provider, "eth_sendTransaction", [{
+      from: args.from,
+      to: knewBallCupAddress(),
+      value: "0x0",
+      data,
+  }]);
+}
+
+export async function sendClaimBallIQTransaction(args: {
+  from: string;
+  matchId: string;
+}) {
+  const provider = getInjectedProvider();
+  if (!provider) throw new Error("No EVM wallet found.");
+  await ensureXLayerNetwork(provider);
+
+  const data = encodeFunctionData({
+    abi: KNEWBALL_CUP_ABI,
+    functionName: "claimBallIQ",
+    args: [matchIdToContractId(args.matchId)],
+  });
+
+  return requestProvider<string>(provider, "eth_sendTransaction", [{
+      from: args.from,
+      to: knewBallCupAddress(),
+      value: "0x0",
+      data,
     }]);
 }
 
@@ -169,6 +225,14 @@ export function explorerTxUrl(txHash: string) {
   return `${ACTIVE_XLAYER.explorerUrl}/tx/${txHash}`;
 }
 
+export function knewBallCupContractAddress() {
+  return knewBallCupAddress();
+}
+
+export function xLayerNetworkLabel() {
+  return ACTIVE_XLAYER.chainId === XLAYER_MAINNET.chainId ? "X Layer" : "X Layer Testnet";
+}
+
 export async function getLockedPrediction(matchId: string, wallet: string) {
   const contractMatchId = matchIdToContractId(matchId);
   const prediction = await activePublicClient.readContract({
@@ -199,6 +263,30 @@ export async function getLockedPrediction(matchId: string, wallet: string) {
   };
 }
 
+export async function getResolvedMatchFromContract(matchId: string) {
+  const contractMatchId = matchIdToContractId(matchId);
+  const result = await activePublicClient.readContract({
+    abi: KNEWBALL_CUP_ABI,
+    address: knewBallCupAddress(),
+    functionName: "results",
+    args: [contractMatchId],
+  });
+
+  if (!result[7]) return null;
+  const txHash = await findMatchResolvedHash(contractMatchId);
+
+  return {
+    homeScore: result[0],
+    awayScore: result[1],
+    winner: winnerFromContractPick(result[2]),
+    firstGoal: firstGoalFromContractPick(result[3]),
+    btts: binaryFromContractPick(result[4]),
+    overUnder: totalGoalsFromContractPick(result[5]),
+    resolvedAt: Number(result[6]) * 1000,
+    txHash,
+  };
+}
+
 async function findPredictionSubmissionHash(matchId: bigint, wallet: string) {
   try {
     let toBlock = await activePublicClient.getBlockNumber();
@@ -224,6 +312,34 @@ async function findPredictionSubmissionHash(matchId: bigint, wallet: string) {
     return "";
   } catch (error) {
     console.warn("Could not recover PredictionSubmitted transaction hash.", error);
+    return "";
+  }
+}
+
+async function findMatchResolvedHash(matchId: bigint) {
+  try {
+    let toBlock = await activePublicClient.getBlockNumber();
+
+    for (let window = 0; window < 80; window += 1) {
+      const fromBlock = toBlock > 99n ? toBlock - 99n : 0n;
+      const events = await activePublicClient.getContractEvents({
+        abi: KNEWBALL_CUP_ABI,
+        address: knewBallCupAddress(),
+        eventName: "MatchResolved",
+        args: { matchId },
+        fromBlock,
+        toBlock,
+      });
+
+      const txHash = events[events.length - 1]?.transactionHash;
+      if (txHash) return txHash;
+      if (fromBlock === 0n) break;
+      toBlock = fromBlock - 1n;
+    }
+
+    return "";
+  } catch (error) {
+    console.warn("Could not recover MatchResolved transaction hash.", error);
     return "";
   }
 }

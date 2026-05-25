@@ -84,7 +84,7 @@ export const WORLD_CUP_TEAMS = Object.values(TEAMS).sort((a, b) =>
   a.name.localeCompare(b.name)
 );
 
-export const MATCHES: Match[] = [
+const WORLD_CUP_MATCHES: Match[] = [
   {
     id: "1",
     group: "Group A - Matchday 1",
@@ -328,24 +328,39 @@ export const MATCHES: Match[] = [
   },
 ];
 
+const DEV_TEST_MATCHES: Match[] = import.meta.env.DEV ? [
+  {
+    id: import.meta.env.VITE_DEV_TEST_MATCH_ID ?? "1000",
+    group: "Dev Test",
+    home: TEAMS.MEX,
+    away: TEAMS.RSA,
+    kickoff: import.meta.env.VITE_DEV_TEST_MATCH_KICKOFF ?? new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+    venue: "X Layer testnet",
+    status: "upcoming",
+    callsLocked: 0,
+  },
+] : [];
+
+export const MATCHES: Match[] = [...DEV_TEST_MATCHES, ...WORLD_CUP_MATCHES];
+
 export interface FanRank {
   rank: number;
   handle: string;
   country: Team;
   ballIq: number;
-  streak: number;
+  form: number;
   accuracy: number;
 }
 
 export const TOP_FANS: FanRank[] = [
-  { rank: 1, handle: "@elcapitan.eth", country: TEAMS.ARG, ballIq: 8420, streak: 14, accuracy: 78 },
-  { rank: 2, handle: "@toko10", country: TEAMS.JPN, ballIq: 8112, streak: 11, accuracy: 74 },
-  { rank: 3, handle: "@samba.brz", country: TEAMS.BRA, ballIq: 7960, streak: 9, accuracy: 71 },
-  { rank: 4, handle: "@kingsroad", country: TEAMS.ENG, ballIq: 7642, streak: 12, accuracy: 70 },
-  { rank: 5, handle: "@atlas.mar", country: TEAMS.MAR, ballIq: 7488, streak: 8, accuracy: 69 },
-  { rank: 6, handle: "@bleu.fr", country: TEAMS.FRA, ballIq: 7301, streak: 7, accuracy: 67 },
-  { rank: 7, handle: "@oranje.knows", country: TEAMS.NED, ballIq: 7044, streak: 6, accuracy: 66 },
-  { rank: 8, handle: "@oppta", country: TEAMS.POR, ballIq: 6892, streak: 5, accuracy: 65 },
+  { rank: 1, handle: "@elcapitan.eth", country: TEAMS.ARG, ballIq: 8420, form: 88, accuracy: 78 },
+  { rank: 2, handle: "@toko10", country: TEAMS.JPN, ballIq: 8112, form: 84, accuracy: 74 },
+  { rank: 3, handle: "@samba.brz", country: TEAMS.BRA, ballIq: 7960, form: 80, accuracy: 71 },
+  { rank: 4, handle: "@kingsroad", country: TEAMS.ENG, ballIq: 7642, form: 76, accuracy: 70 },
+  { rank: 5, handle: "@atlas.mar", country: TEAMS.MAR, ballIq: 7488, form: 72, accuracy: 69 },
+  { rank: 6, handle: "@bleu.fr", country: TEAMS.FRA, ballIq: 7301, form: 68, accuracy: 67 },
+  { rank: 7, handle: "@oranje.knows", country: TEAMS.NED, ballIq: 7044, form: 64, accuracy: 66 },
+  { rank: 8, handle: "@oppta", country: TEAMS.POR, ballIq: 6892, form: 60, accuracy: 65 },
 ];
 
 export interface CountryRank {
@@ -374,12 +389,12 @@ export interface Badge {
 export const BADGES: Badge[] = [
   { id: "first-call",      name: "First Call",      description: "User locks first prediction on X Layer",      icon: "mail" },
   { id: "knew-ball",        name: "Knew Ball",       description: "User gets first correct prediction",          icon: "target" },
-  { id: "strong-call",      name: "Strong Call",     description: "Three reads landed. You knew the shape of the match.", icon: "target" },
-  { id: "sharp-call",       name: "Sharp Call",      description: "Four out of five. One detail away from perfection.", icon: "sparkles" },
-  { id: "perfect-slate",    name: "Perfect Slate",   description: "Every detail landed. No edits. No excuses.",  icon: "trophy" },
+  { id: "strong-call",      name: "Strong Call",     description: "Three calls landed. The agenda has evidence.", icon: "target" },
+  { id: "sharp-call",       name: "Sharp Call",      description: "Four out of five. That is not luck anymore.", icon: "sparkles" },
+  { id: "perfect-slate",    name: "Perfect Slate",   description: "Every call landed. No edits. No hiding. You knew ball.",  icon: "trophy" },
   { id: "score-prophet",    name: "Score Prophet",   description: "User predicts exact final score",             icon: "sparkles" },
   { id: "first-blood",      name: "First Blood",     description: "User predicts first team to score",           icon: "zap" },
-  { id: "hot-foot",         name: "Hot Foot",        description: "User gets 3 correct winner calls in a row",   icon: "flame" },
+  { id: "in-form",          name: "In Form",         description: "The recent reads are holding up.",            icon: "flame" },
   { id: "upset-hunter",     name: "Upset Hunter",    description: "User correctly predicts underdog win",        icon: "shield" },
   { id: "chaos-merchant",   name: "Chaos Merchant",  description: "You saw the madness coming",                  icon: "shuffle" },
   { id: "country-captain",  name: "Country Captain", description: "User enters top 10 for their country",        icon: "crown" },
@@ -388,5 +403,5 @@ export const BADGES: Badge[] = [
 export const BADGE_GROUPS = {
   "Call Milestone": ["first-call"],
   "Accuracy": ["strong-call", "sharp-call", "perfect-slate", "first-blood", "score-prophet"],
-  "Reputation": ["knew-ball", "hot-foot", "upset-hunter", "chaos-merchant", "country-captain"]
+  "Reputation": ["knew-ball", "in-form", "upset-hunter", "chaos-merchant", "country-captain"]
 };

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useMatchRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useMatchRoute, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
@@ -14,8 +14,9 @@ export const Route = createFileRoute("/matches")({
 function MatchesPage() {
   const [tab, setTab] = useState<"live" | "past">("live");
   const [showHelp, setShowHelp] = useState(false);
-  const { wallet, profile, totalBallIq, unclaimed, predictions, claimPrediction, createProfile, currentStreak } = useStore();
+  const { wallet, profile, profileHydrating, totalBallIq, unclaimed, predictions, claimPrediction, createProfile, currentForm } = useStore();
   const matchRoute = useMatchRoute();
+  const router = useRouter();
   const childMatch = matchRoute({ to: "/matches/$matchId", fuzzy: true });
 
   if (childMatch) return <Outlet />;
@@ -26,6 +27,25 @@ function MatchesPage() {
 
   const callsLocked = MATCHES.reduce((s, m) => s + m.callsLocked, 0);
   const ballIqClaimed = predictions.reduce((s, p) => s + (p.pointsEarned ?? 0), 0) + 42_900;
+
+  if (wallet && !profile && profileHydrating) {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <Nav />
+        <LiveTicker />
+        <main className="mx-auto max-w-3xl px-4 py-24 text-center sm:px-6">
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
+            Wallet connected · {shortAddress(wallet)}
+          </span>
+          <h1 className="mt-3 font-display text-4xl tracking-tight sm:text-5xl">Loading your fan profile</h1>
+          <p className="mx-auto mt-3 max-w-md text-sm text-muted-foreground">
+            Checking Supabase for your saved KnewBall identity.
+          </p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (wallet && !profile) {
     return (
@@ -46,7 +66,7 @@ function MatchesPage() {
         <Nav />
         <LiveTicker />
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8 md:py-10">
-          <section className="grid gap-6 lg:grid-cols-[1fr_520px] lg:items-end">
+          <section className="grid gap-6 lg:grid-cols-[1fr_520px] lg:items-start">
             <div>
               <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">Matchboard</span>
               <h1 className="mt-2 max-w-4xl font-display text-3xl leading-[0.95] tracking-tight sm:text-4xl md:text-5xl">
@@ -83,17 +103,9 @@ function MatchesPage() {
             </dl>
           </section>
 
-          <section id="preview-matches" className="mt-8">
-            <div className="mb-5 flex items-baseline justify-between border-b border-hairline pb-3">
-              <div>
-                <h2 className="font-display text-3xl tracking-tight">Browse the matchboard</h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Preview open matches. Connect only when you are ready to lock your call.
-                </p>
-              </div>
-              <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                {live.length + upcoming.length} open
-              </span>
+          <section id="preview-matches" className="mt-20 sm:mt-24">
+            <div className="mb-5">
+              <h2 className="font-display text-3xl tracking-tight">Browse the matchboard</h2>
             </div>
             <div className="mb-6 flex items-center gap-2 border-b border-hairline">
               <Tab active={tab === "live"} onClick={() => setTab("live")}>
@@ -108,16 +120,16 @@ function MatchesPage() {
             {tab === "live" ? (
               <>
                 {live.length > 0 && (
-                  <Section title="Live now" caption={`${live.length} in progress`}>
+                  <Section>
                     <Grid>{live.map((m) => <MatchCard key={m.id} match={m} />)}</Grid>
                   </Section>
                 )}
-                <Section title="Open for calls" caption={`${upcoming.length} to call`}>
+                <Section>
                   <Grid>{upcoming.map((m) => <MatchCard key={m.id} match={m} />)}</Grid>
                 </Section>
               </>
             ) : (
-              <Section title="Past arenas" caption={`${finals.length} resolved`}>
+              <Section>
                 <Grid>{finals.map((m) => <MatchCard key={m.id} match={m} />)}</Grid>
               </Section>
             )}
@@ -200,28 +212,30 @@ function MatchesPage() {
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
       <LiveTicker />
-      <main className={`mx-auto max-w-7xl px-4 sm:px-6 ${isDashboard ? "py-6 sm:py-8 md:py-10" : "py-8 md:py-12 lg:py-16"}`}>
-        <header className={isDashboard ? "max-w-4xl" : "max-w-3xl"}>
-          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
-            {isDashboard ? `Welcome back, ${profile.displayName}` : "Matchboard"}
-          </span>
-          <h1 className={`mt-2 font-display leading-[0.95] tracking-tight ${isDashboard ? "text-3xl sm:text-4xl md:text-5xl" : "text-4xl sm:text-5xl md:text-7xl"}`}>
-            {isDashboard ? "Matchboard" : "Make your call before kickoff."}
-          </h1>
-          <p className={`mt-4 text-muted-foreground ${isDashboard ? "text-base" : "md:text-lg"}`}>
+      <main className={`mx-auto max-w-7xl px-4 sm:px-6 ${isDashboard ? "py-10 sm:py-14 md:py-16" : "py-16 sm:py-20 md:py-24 lg:py-28"}`}>
+        <header className={`${isDashboard ? "max-w-4xl" : "max-w-3xl"} space-y-3 sm:space-y-4`}>
+          <div>
+            <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
+              {isDashboard ? `Welcome back, ${profile.displayName}` : "Matchboard"}
+            </span>
+            <h1 className={`mt-2 font-display leading-[0.95] tracking-tight ${isDashboard ? "text-3xl sm:text-4xl md:text-5xl" : "text-4xl sm:text-5xl md:text-7xl"}`}>
+              {isDashboard ? "Matchboard" : "Make your call before kickoff."}
+            </h1>
+          </div>
+          <p className={`text-muted-foreground leading-relaxed ${isDashboard ? "text-base" : "md:text-lg"}`}>
             {isDashboard
               ? "Make your calls, claim Ball IQ, and climb the table."
               : "Lock World Cup predictions on X Layer and prove you knew ball when the result lands."}
           </p>
         </header>
 
-        <dl className="mt-5 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:mt-6 md:grid-cols-4">
+        <dl className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border sm:mt-10 md:mt-12 md:grid-cols-4">
           {isDashboard ? (
             <>
               <Stat label="Ball IQ" value={totalBallIq.toLocaleString()} />
               <Stat label="Global rank" value={totalBallIq > 0 ? "#42" : "Unranked"} compact />
               <Stat label="Country rank" value={totalBallIq > 0 ? "#7" : "Pending"} compact />
-              <Stat label="Current streak" value={currentStreak.toString()} accent />
+              <Stat label="Current Form" value={formatFormValue(currentForm)} sub={formatLastFive(currentForm.calls)} accent />
             </>
           ) : (
             <>
@@ -235,33 +249,42 @@ function MatchesPage() {
 
         {/* Claim available */}
         {unclaimed.length > 0 && (
-          <section className="mt-12">
-            <div className="mb-4 flex items-baseline justify-between border-b border-hairline pb-3">
-              <h2 className="font-display text-3xl tracking-tight md:text-4xl">Claim available</h2>
+          <section className="mt-16 sm:mt-20">
+            <div className="mb-6 flex items-baseline justify-between border-b border-hairline pb-4">
+              <h2 className="font-display text-3xl tracking-tight sm:text-4xl">Claim available</h2>
               <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
                 {unclaimed.length} ready
               </span>
             </div>
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-6 md:grid-cols-2">
               {unclaimed.map((p) => {
                 const m = matchById(p.matchId)!;
                 return (
-                  <article key={p.id} className="ring-pitch relative overflow-hidden rounded-2xl border border-primary/40 bg-surface p-6">
+                  <article key={p.id} className="ring-pitch relative overflow-hidden rounded-2xl border border-primary/40 bg-surface p-6 sm:p-8">
                     <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-50" />
                     <div className="relative">
                       <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-primary">Result in</span>
-                      <h3 className="mt-1 font-display text-3xl tracking-tight">{m.home.name} vs {m.away.name}</h3>
-                      <p className="mt-2 text-sm text-muted-foreground">
+                      <h3 className="mt-1.5 font-display text-3xl tracking-tight">{m.home.name} vs {m.away.name}</h3>
+                      <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
                         Your call is waiting. Claim Ball IQ to lock it into your profile.
                       </p>
                       <button
                         type="button"
-                        onClick={() => claimPrediction(p.id)}
-                        className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:brightness-110"
+                        onClick={() => {
+                          void claimPrediction(p.id)
+                            .then((claimedPrediction) => router.navigate({
+                              to: "/verdict/$predictionId",
+                              params: { predictionId: claimedPrediction?.id ?? p.id },
+                            }))
+                            .catch((error) => {
+                              console.warn("Could not claim Ball IQ from matchboard.", error);
+                            });
+                        }}
+                        className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:brightness-110 cursor-pointer"
                       >
                         Claim Ball IQ →
                       </button>
-                      <Link to="/matches/$matchId" params={{ matchId: m.id }} className="ml-2 inline-flex font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground">
+                      <Link to="/matches/$matchId" params={{ matchId: m.id }} className="ml-4 inline-flex font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground">
                         Open match →
                       </Link>
                     </div>
@@ -273,18 +296,18 @@ function MatchesPage() {
         )}
 
         {/* Tabs */}
-        <div className={`${isDashboard ? "mt-8" : "mt-14"} mb-6 flex items-center gap-2 border-b border-hairline`}>
+        <div className={`${isDashboard ? "mt-14" : "mt-20 md:mt-24"} mb-10 flex items-center gap-4 border-b border-hairline`}>
           <Tab active={tab === "live"} onClick={() => setTab("live")}>
             Live &amp; Upcoming
-            <span className="ml-2 font-mono text-[10px] text-muted-foreground">{live.length + upcoming.length}</span>
+            <span className="ml-2.5 font-mono text-[10px] text-muted-foreground">{live.length + upcoming.length}</span>
           </Tab>
           <Tab active={tab === "past"} onClick={() => setTab("past")}>
             Past Arenas
-            <span className="ml-2 font-mono text-[10px] text-muted-foreground">{finals.length}</span>
+            <span className="ml-2.5 font-mono text-[10px] text-muted-foreground">{finals.length}</span>
           </Tab>
           {import.meta.env.DEV && (
             <Link
-              to="/admin"
+              to="/admin/results"
               className="ml-auto rounded-full border border-border px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground hover:text-foreground"
             >
               Admin
@@ -299,18 +322,18 @@ function MatchesPage() {
             ) : (
               <>
                 {live.length > 0 && (
-                  <Section title="Live now" caption={`${live.length} in progress`}>
+                  <Section>
                     <Grid>{live.map((m) => <MatchCard key={m.id} match={m} />)}</Grid>
                   </Section>
                 )}
-                <Section title="Open for calls" caption={`${upcoming.length} to call`}>
+                <Section>
                   <Grid>{upcoming.map((m) => <MatchCard key={m.id} match={m} />)}</Grid>
                 </Section>
               </>
             )}
           </>
         ) : (
-          <Section title="Past arenas" caption={`${finals.length} resolved`}>
+          <Section>
             <Grid>{finals.map((m) => <MatchCard key={m.id} match={m} />)}</Grid>
           </Section>
         )}
@@ -320,15 +343,28 @@ function MatchesPage() {
   );
 }
 
-function Stat({ label, value, accent, compact }: { label: string; value: string; accent?: boolean; compact?: boolean }) {
+function Stat({ label, value, accent, compact, sub }: { label: string; value: string; accent?: boolean; compact?: boolean; sub?: string }) {
   return (
     <div className="bg-surface/90 px-4 py-4 sm:px-5 sm:py-5">
       <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">{label}</div>
       <div className={`mt-1.5 font-display tracking-tight sm:mt-2 ${compact ? "text-xl sm:text-2xl md:text-3xl" : "text-2xl sm:text-3xl md:text-4xl"} ${accent ? "text-gold" : "text-foreground"}`}>
         {value}
       </div>
+      {sub && (
+        <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+          {sub}
+        </div>
+      )}
     </div>
   );
+}
+
+function formatFormValue(form: { label: string; percentage: number | null }) {
+  return form.percentage === null ? form.label : `${form.percentage}%`;
+}
+
+function formatLastFive(calls: number[]) {
+  return calls.length ? calls.map((call) => `${call}/5`).join(", ") : "No claims yet";
 }
 
 function Tab({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
@@ -363,20 +399,22 @@ function EmptyLive() {
   );
 }
 
-function Section({ title, caption, children }: { title: string; caption: string; children: React.ReactNode }) {
+function Section({ title, caption, children }: { title?: string; caption?: string; children: React.ReactNode }) {
   return (
-    <section className="mb-12">
-      <div className="mb-6 flex items-baseline justify-between">
-        <h2 className="font-display text-2xl tracking-tight md:text-3xl">{title}</h2>
-        <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">{caption}</span>
-      </div>
+    <section className="mb-16 sm:mb-20">
+      {(title || caption) && (
+        <div className="mb-8 flex items-baseline justify-between">
+          {title && <h2 className="font-display text-2xl tracking-tight md:text-3xl">{title}</h2>}
+          {caption && <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">{caption}</span>}
+        </div>
+      )}
       {children}
     </section>
   );
 }
 
 function Grid({ children }: { children: React.ReactNode }) {
-  return <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{children}</div>;
+  return <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{children}</div>;
 }
 
 function ProfileSetupPanel({
@@ -392,15 +430,17 @@ function ProfileSetupPanel({
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <section className="grid gap-8 lg:grid-cols-[1fr_420px] lg:items-start">
-      <div className="pt-2">
-        <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
-          Wallet connected · {shortAddress(wallet)}
-        </span>
-        <h1 className="mt-3 max-w-3xl font-display text-5xl leading-[0.95] tracking-tight md:text-6xl">
-          Create your fan profile
-        </h1>
-        <p className="mt-4 max-w-xl text-muted-foreground md:text-lg">
+    <section className="grid gap-12 lg:grid-cols-[1fr_420px] lg:items-start lg:gap-16">
+      <div className="pt-2 space-y-4">
+        <div>
+          <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">
+            Wallet connected · {shortAddress(wallet)}
+          </span>
+          <h1 className="mt-3 max-w-3xl font-display text-5xl leading-[0.95] tracking-tight md:text-6xl">
+            Create your fan profile
+          </h1>
+        </div>
+        <p className="max-w-xl text-muted-foreground leading-relaxed md:text-lg">
           Choose your display name and the country you support so your Ball IQ, badges, and call history can be tracked.
         </p>
       </div>
@@ -419,24 +459,24 @@ function ProfileSetupPanel({
             setPending(false);
           }
         }}
-        className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6"
+        className="relative overflow-hidden rounded-2xl border border-border bg-surface p-6 sm:p-8 md:p-10"
       >
         <div className="pointer-events-none absolute inset-0 bg-pitch-grid opacity-40" />
-        <div className="relative space-y-4">
+        <div className="relative space-y-6 sm:space-y-8">
           <Field label="Display name">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={20}
               placeholder="pelz0x"
-              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+              className="w-full rounded-xl border border-border bg-background px-4 py-3.5 text-sm text-foreground outline-none focus:border-primary transition"
             />
           </Field>
           <Field label="Country">
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
+              className="w-full rounded-xl border border-border bg-background px-4 py-3.5 text-sm text-foreground outline-none focus:border-primary transition"
             >
               {WORLD_CUP_TEAMS.map((t) => (
                 <option key={t.code} value={t.code}>{t.flag} {t.name}</option>

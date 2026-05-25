@@ -26,11 +26,7 @@ export function Badges() {
             className="group relative overflow-hidden rounded-2xl border border-border bg-surface p-6 transition hover:bg-surface-elevated"
           >
             <div className="flex items-start justify-between">
-              <div
-                className="flex h-14 w-14 items-center justify-center rounded-xl border border-border bg-background"
-              >
-                <BadgeIcon id={b.id} className="h-6 w-6" />
-              </div>
+              <BadgeIcon id={b.id} className="h-12 w-12" />
             </div>
             <h3 className="mt-5 font-display text-2xl tracking-tight">{b.name}</h3>
             <p className="mt-1 text-sm text-muted-foreground">{b.description}</p>

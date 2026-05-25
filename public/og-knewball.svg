@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="KnewBall proof card">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#101720"/>
+      <stop offset="1" stop-color="#05070a"/>
+    </linearGradient>
+    <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse">
+      <path d="M42 0H0v42" fill="none" stroke="#203040" stroke-opacity=".36" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="#05070a"/>
+  <rect x="76" y="62" width="1048" height="506" rx="34" fill="url(#g)" stroke="#1f2a35" stroke-width="2"/>
+  <rect x="76" y="62" width="1048" height="506" rx="34" fill="url(#grid)" opacity=".85"/>
+  <g transform="translate(118 108)">
+    <path d="M37 0 74 21v43L37 86 0 64V21L37 0Z" fill="none" stroke="#1ee66f" stroke-width="5"/>
+    <path d="M37 14v58M22 29l15-9 15 9M22 57l15 9 15-9" fill="none" stroke="#eaf0f8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="102" y="55" fill="#f5f8fc" font-family="Arial Black, Arial, sans-serif" font-size="38" font-weight="900">KNEW<tspan fill="#1ee66f">BALL</tspan></text>
+  </g>
+  <text x="118" y="226" fill="#1ee66f" font-family="Courier New, monospace" font-size="18" font-weight="700" letter-spacing="8">ONCHAIN PROOF · X LAYER</text>
+  <text x="118" y="324" fill="#f5f8fc" font-family="Arial Black, Arial, sans-serif" font-size="78" font-weight="900">Prove you knew ball</text>
+  <text x="118" y="400" fill="#f5f8fc" font-family="Arial Black, Arial, sans-serif" font-size="78" font-weight="900">before kickoff.</text>
+  <rect x="118" y="454" width="602" height="62" rx="31" fill="#0c1118" stroke="#263341"/>
+  <text x="154" y="494" fill="#b7c4d6" font-family="Courier New, monospace" font-size="20" font-weight="700" letter-spacing="5">NO EDITS · NO DELETED TAKES</text>
+  <rect x="788" y="438" width="250" height="86" rx="20" fill="#102719" stroke="#1ee66f" stroke-opacity=".42"/>
+  <text x="826" y="472" fill="#1ee66f" font-family="Courier New, monospace" font-size="14" font-weight="700" letter-spacing="5">BALL IQ</text>
+  <text x="826" y="510" fill="#f5f8fc" font-family="Arial Black, Arial, sans-serif" font-size="36" font-weight="900">CLAIMED</text>
+</svg>

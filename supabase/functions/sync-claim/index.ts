@@ -212,5 +212,32 @@ async function calculateBadgeIds(
     if (!knewBall || knewBall.length === 0) candidates.push("knew_ball");
   }
 
+  const { data: recentClaims, error: recentError } = await supabase
+    .from("predictions")
+    .select("correct_count")
+    .eq("wallet_address", walletAddress)
+    .eq("claimed", true)
+    .order("claimed_at", { ascending: false })
+    .limit(4);
+  if (recentError) throw recentError;
+
+  const formWindow = [
+    outcome.correctCount,
+    ...((recentClaims ?? []) as { correct_count: number }[]).map((claim) => claim.correct_count),
+  ].slice(0, 5);
+  if (formWindow.length >= 5) {
+    const formPercentage = Math.round((formWindow.reduce((sum, count) => sum + count, 0) / 25) * 100);
+    if (formPercentage >= 60) {
+      const { data: inForm, error } = await supabase
+        .from("user_badges")
+        .select("id")
+        .eq("wallet_address", walletAddress)
+        .eq("badge_id", "in_form")
+        .limit(1);
+      if (error) throw error;
+      if (!inForm || inForm.length === 0) candidates.push("in_form");
+    }
+  }
+
   return [...new Set(candidates)];
 }

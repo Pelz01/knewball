@@ -1,0 +1,17 @@
+{
+  "1001": {
+    "external_provider": "mock",
+    "external_match_id": "dev-1001",
+    "note": "Local X Layer testnet automation fixture"
+  },
+  "1002": {
+    "external_provider": "mock",
+    "external_match_id": "dev-1002",
+    "note": "Local X Layer testnet automation fixture"
+  },
+  "1003": {
+    "external_provider": "mock",
+    "external_match_id": "dev-1003",
+    "note": "Local X Layer testnet automation fixture"
+  }
+}

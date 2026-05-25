@@ -11,7 +11,11 @@ export const Route = createFileRoute("/admin")({
 });
 
 function Admin() {
-  const { results, resolveMatch, predictions } = useStore();
+  return <AdminResults />;
+}
+
+export function AdminResults() {
+  const { wallet, results, resolveMatchOnchain, predictions } = useStore();
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
@@ -20,8 +24,8 @@ function Admin() {
           <span className="font-mono text-[10px] uppercase tracking-[0.24em] text-primary">Admin · demo</span>
           <h1 className="mt-2 font-display text-5xl tracking-tight md:text-6xl">Resolve matches</h1>
           <p className="mt-3 max-w-xl text-muted-foreground">
-            Seed a result for any fixture. As soon as you resolve, fans who locked a call before kickoff
-            can claim their Ball IQ.
+            Resolve fixtures through KnewBallCup first, then sync the verified result into Supabase.
+            Fans can claim Ball IQ after the result is settled on X Layer.
           </p>
         </header>
 
@@ -29,6 +33,7 @@ function Admin() {
           {MATCHES.map((m) => {
             const r = results[m.id];
             const claimsAvailable = predictions.filter((p) => p.matchId === m.id && !p.claimed).length;
+            const kickoffPassed = new Date(m.kickoff).getTime() <= Date.now();
             return (
               <li key={m.id} className="rounded-2xl border border-border bg-surface p-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -61,7 +66,10 @@ function Admin() {
                 )}
                 <ResolveForm
                   matchId={m.id}
-                  onResolve={(payload) => resolveMatch({ ...payload, matchId: m.id, resolvedAt: Date.now() })}
+                  kickoffPassed={kickoffPassed}
+                  resolved={Boolean(r)}
+                  walletReady={Boolean(wallet)}
+                  onResolve={(payload) => resolveMatchOnchain({ ...payload, matchId: m.id })}
                 />
               </li>
             );
@@ -78,16 +86,46 @@ function Admin() {
 }
 
 function ResolveForm({
-  matchId, onResolve,
-}: { matchId: string; onResolve: (r: { homeScore: number; awayScore: number; winner: "home" | "draw" | "away"; firstGoal: "home" | "away" | "none"; btts: "yes" | "no"; overUnder: "over" | "under"; isUpsetResult?: boolean; chaosOutcome?: string }) => void }) {
+  matchId, kickoffPassed, resolved, walletReady, onResolve,
+}: {
+  matchId: string;
+  kickoffPassed: boolean;
+  resolved: boolean;
+  walletReady: boolean;
+  onResolve: (r: { homeScore: number; awayScore: number; winner: "home" | "draw" | "away"; firstGoal: "home" | "away" | "none"; btts: "yes" | "no"; overUnder: "over" | "under"; isUpsetResult?: boolean; chaosOutcome?: string }) => Promise<unknown>;
+}) {
   const [h, setH] = useState(2);
   const [a, setA] = useState(1);
   const [fg, setFg] = useState<"home" | "away" | "none">("home");
   const [isUpset, setIsUpset] = useState(false);
   const [chaos, setChaos] = useState("");
+  const [status, setStatus] = useState<"idle" | "resolving" | "synced">("idle");
+  const [error, setError] = useState<string | null>(null);
   const winner: "home" | "draw" | "away" = h > a ? "home" : h < a ? "away" : "draw";
   const btts: "yes" | "no" = h > 0 && a > 0 ? "yes" : "no";
   const overUnder: "over" | "under" = h + a > 2 ? "over" : "under";
+  const disabled = resolved || !kickoffPassed || !walletReady || status === "resolving";
+
+  async function handleResolve() {
+    setError(null);
+    setStatus("resolving");
+    try {
+      await onResolve({
+        homeScore: h,
+        awayScore: a,
+        winner,
+        firstGoal: fg,
+        btts,
+        overUnder,
+        isUpsetResult: isUpset,
+        chaosOutcome: chaos || undefined,
+      });
+      setStatus("synced");
+    } catch (err) {
+      setStatus("idle");
+      setError(err instanceof Error ? err.message : "Result resolution failed.");
+    }
+  }
 
   return (
     <div className="mt-5 border-t border-border/30 pt-5 flex flex-col gap-4">
@@ -135,12 +173,28 @@ function ResolveForm({
 
         <button
           type="button"
-          onClick={() => onResolve({ homeScore: h, awayScore: a, winner, firstGoal: fg, btts, overUnder, isUpsetResult: isUpset, chaosOutcome: chaos || undefined })}
-          className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:brightness-110 shadow-lg shadow-primary/20 transition-all ml-auto"
+          disabled={disabled}
+          onClick={handleResolve}
+          className="rounded-full bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:brightness-110 shadow-lg shadow-primary/20 transition-all ml-auto disabled:cursor-not-allowed disabled:bg-surface-elevated disabled:text-muted-foreground"
         >
-          Resolve
+          {status === "resolving" ? "Resolving…" : status === "synced" || resolved ? "Resolved" : "Resolve on X Layer"}
         </button>
       </div>
+      {!walletReady && (
+        <p className="rounded-xl border border-border bg-background p-3 text-xs text-muted-foreground">
+          Connect the KnewBallCup owner wallet before resolving results.
+        </p>
+      )}
+      {walletReady && !kickoffPassed && !resolved && (
+        <p className="rounded-xl border border-border bg-background p-3 text-xs text-muted-foreground">
+          Kickoff has not passed yet. The contract will reject this resolve until the fixture starts.
+        </p>
+      )}
+      {error && (
+        <p className="rounded-xl border border-red-card/30 bg-red-card/10 p-3 text-sm text-red-card">
+          {error}
+        </p>
+      )}
       <input type="hidden" value={matchId} readOnly />
     </div>
   );

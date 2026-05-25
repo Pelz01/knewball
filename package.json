@@ -10,6 +10,10 @@
     "preview": "vite preview",
     "contract:deploy": "node scripts/deploy-knewball.mjs",
     "contract:seed": "node scripts/seed-matches.mjs",
+    "contract:seed:test": "node scripts/seed-test-match.mjs",
+    "auto-resolve": "node scripts/run-auto-resolve.mjs",
+    "fixtures:import": "node scripts/import-api-football-fixtures.mjs",
+    "prepare:auto-test": "node scripts/prepare-auto-resolve-test.mjs",
     "lint": "eslint .",
     "format": "prettier --write ."
   },

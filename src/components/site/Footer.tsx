@@ -12,7 +12,7 @@ export function Footer() {
               <Wordmark className="font-display text-lg tracking-tight" />
             </div>
             <p className="mt-4 max-w-sm text-sm text-muted-foreground">
-              An onchain World Cup prediction streak game. Built for fans who want to prove
+              An onchain World Cup prediction form game. Built for fans who want to prove
               they knew ball before the timeline caught up.
             </p>
             <div className="mt-5 flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">

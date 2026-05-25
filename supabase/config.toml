@@ -1,0 +1,2 @@
+[functions.auto-resolve-results]
+verify_jwt = false

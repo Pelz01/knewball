@@ -17,7 +17,7 @@ function Index() {
       <Nav variant="marketing" />
       <Hero />
 
-      <main className="mx-auto max-w-7xl space-y-14 px-4 py-10 sm:px-6 md:space-y-24 md:py-20 lg:py-28">
+      <main className="mx-auto max-w-7xl space-y-28 px-4 py-16 sm:px-6 sm:py-20 md:space-y-36 md:py-28 lg:py-36">
         <section id="how-it-works">
           <HowItWorks />
         </section>
@@ -75,7 +75,7 @@ function Index() {
                 to="/matches"
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
               >
-                Start predicting →
+                Launch app →
               </Link>
               <Link
                 to="/leaderboard"
@@ -97,12 +97,12 @@ const PILLARS = [
   {
     n: "01",
     title: "Pure Reputation",
-    body: "Your record is your reputation. Climb the leaderboard based on your football knowledge, and earn badges for your streak.",
+    body: "Your record is your reputation. Climb the leaderboard through sharp calls, recent form, and proof people can inspect.",
   },
   {
     n: "02",
-    title: "Proof at kickoff",
-    body: "Every call is signed and written to X Layer the moment the whistle blows. No silent edits. No revisionist history.",
+    title: "Proof before kickoff",
+    body: "Every call is locked on X Layer before kickoff. No silent edits. No revisionist history.",
   },
   {
     n: "03",

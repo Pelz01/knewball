@@ -16,9 +16,11 @@ import { Route as LeaderboardRouteImport } from './routes/leaderboard'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as VerdictPredictionIdRouteImport } from './routes/verdict.$predictionId'
 import { Route as ProofPredictionIdRouteImport } from './routes/proof.$predictionId'
 import { Route as ProfileWalletRouteImport } from './routes/profile.$wallet'
 import { Route as MatchesMatchIdRouteImport } from './routes/matches.$matchId'
+import { Route as AdminResultsRouteImport } from './routes/admin.results'
 
 const VaultRoute = VaultRouteImport.update({
   id: '/vault',
@@ -55,6 +57,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const VerdictPredictionIdRoute = VerdictPredictionIdRouteImport.update({
+  id: '/verdict/$predictionId',
+  path: '/verdict/$predictionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProofPredictionIdRoute = ProofPredictionIdRouteImport.update({
   id: '/proof/$predictionId',
   path: '/proof/$predictionId',
@@ -70,43 +77,54 @@ const MatchesMatchIdRoute = MatchesMatchIdRouteImport.update({
   path: '/$matchId',
   getParentRoute: () => MatchesRoute,
 } as any)
+const AdminResultsRoute = AdminResultsRouteImport.update({
+  id: '/results',
+  path: '/results',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/matches': typeof MatchesRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
   '/vault': typeof VaultRoute
+  '/admin/results': typeof AdminResultsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
   '/profile/$wallet': typeof ProfileWalletRoute
   '/proof/$predictionId': typeof ProofPredictionIdRoute
+  '/verdict/$predictionId': typeof VerdictPredictionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/matches': typeof MatchesRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
   '/vault': typeof VaultRoute
+  '/admin/results': typeof AdminResultsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
   '/profile/$wallet': typeof ProfileWalletRoute
   '/proof/$predictionId': typeof ProofPredictionIdRoute
+  '/verdict/$predictionId': typeof VerdictPredictionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/how-it-works': typeof HowItWorksRoute
   '/leaderboard': typeof LeaderboardRoute
   '/matches': typeof MatchesRouteWithChildren
   '/profile': typeof ProfileRouteWithChildren
   '/vault': typeof VaultRoute
+  '/admin/results': typeof AdminResultsRoute
   '/matches/$matchId': typeof MatchesMatchIdRoute
   '/profile/$wallet': typeof ProfileWalletRoute
   '/proof/$predictionId': typeof ProofPredictionIdRoute
+  '/verdict/$predictionId': typeof VerdictPredictionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -118,9 +136,11 @@ export interface FileRouteTypes {
     | '/matches'
     | '/profile'
     | '/vault'
+    | '/admin/results'
     | '/matches/$matchId'
     | '/profile/$wallet'
     | '/proof/$predictionId'
+    | '/verdict/$predictionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -130,9 +150,11 @@ export interface FileRouteTypes {
     | '/matches'
     | '/profile'
     | '/vault'
+    | '/admin/results'
     | '/matches/$matchId'
     | '/profile/$wallet'
     | '/proof/$predictionId'
+    | '/verdict/$predictionId'
   id:
     | '__root__'
     | '/'
@@ -142,20 +164,23 @@ export interface FileRouteTypes {
     | '/matches'
     | '/profile'
     | '/vault'
+    | '/admin/results'
     | '/matches/$matchId'
     | '/profile/$wallet'
     | '/proof/$predictionId'
+    | '/verdict/$predictionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   HowItWorksRoute: typeof HowItWorksRoute
   LeaderboardRoute: typeof LeaderboardRoute
   MatchesRoute: typeof MatchesRouteWithChildren
   ProfileRoute: typeof ProfileRouteWithChildren
   VaultRoute: typeof VaultRoute
   ProofPredictionIdRoute: typeof ProofPredictionIdRoute
+  VerdictPredictionIdRoute: typeof VerdictPredictionIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -209,6 +234,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/verdict/$predictionId': {
+      id: '/verdict/$predictionId'
+      path: '/verdict/$predictionId'
+      fullPath: '/verdict/$predictionId'
+      preLoaderRoute: typeof VerdictPredictionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/proof/$predictionId': {
       id: '/proof/$predictionId'
       path: '/proof/$predictionId'
@@ -230,8 +262,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MatchesMatchIdRouteImport
       parentRoute: typeof MatchesRoute
     }
+    '/admin/results': {
+      id: '/admin/results'
+      path: '/results'
+      fullPath: '/admin/results'
+      preLoaderRoute: typeof AdminResultsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminResultsRoute: typeof AdminResultsRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminResultsRoute: AdminResultsRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface MatchesRouteChildren {
   MatchesMatchIdRoute: typeof MatchesMatchIdRoute
@@ -257,13 +306,14 @@ const ProfileRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   HowItWorksRoute: HowItWorksRoute,
   LeaderboardRoute: LeaderboardRoute,
   MatchesRoute: MatchesRouteWithChildren,
   ProfileRoute: ProfileRouteWithChildren,
   VaultRoute: VaultRoute,
   ProofPredictionIdRoute: ProofPredictionIdRoute,
+  VerdictPredictionIdRoute: VerdictPredictionIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

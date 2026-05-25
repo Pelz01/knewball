@@ -228,7 +228,7 @@ values
   ('perfect_slate', 'Perfect Slate', 'perfect-slate', 'Legendary', 'Every detail landed. No edits. No excuses.'),
   ('score_prophet', 'Score Prophet', 'score-prophet', 'Elite', 'Call the exact final score.'),
   ('first_blood', 'First Blood', 'first-blood', 'Rare', 'Call the first team to score.'),
-  ('hot_foot', 'Hot Foot', 'hot-foot', 'Elite', 'Land three correct winner calls in resolved order.'),
+  ('in_form', 'In Form', 'in-form', 'Elite', 'The recent reads are holding up.'),
   ('upset_hunter', 'Upset Hunter', 'upset-hunter', 'Elite', 'Call the underdog win.'),
   ('chaos_merchant', 'Chaos Merchant', 'chaos-merchant', 'Elite', 'You saw the madness coming.'),
   ('country_captain', 'Country Captain', 'country-captain', 'Legendary', 'Enter the top ten for your country.')

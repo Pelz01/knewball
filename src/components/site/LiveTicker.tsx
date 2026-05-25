@@ -13,8 +13,8 @@ export function LiveTicker() {
   return (
     <div className="relative overflow-hidden border-y border-border bg-surface/60">
       <div className="flex items-center gap-3 py-2.5">
-        <span className="ml-6 flex shrink-0 items-center gap-2 rounded-full bg-red-card/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-red-card">
-          <span className="live-dot h-1.5 w-1.5 rounded-full bg-red-card" />
+        <span className="ml-6 flex shrink-0 items-center gap-2 rounded-full bg-primary/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-primary">
+          <span className="live-dot h-1.5 w-1.5 rounded-full bg-primary" />
           Live
         </span>
         <div className="relative flex-1 overflow-hidden">

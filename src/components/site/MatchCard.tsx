@@ -38,6 +38,22 @@ export function MatchCard({ match }: { match: Match }) {
   const draft = getDraft(match.id);
   const result = getResult(match.id);
   const canClaim = !!pred && !!result && !pred.claimed;
+  const kickoffMs = new Date(match.kickoff).getTime();
+  const minutesToKickoff = Math.round((kickoffMs - Date.now()) / 60000);
+  const closingSoon = !pred && !isLive && !isFinal && minutesToKickoff > 0 && minutesToKickoff <= 60;
+  const stateLabel = canClaim
+    ? "Claim Available"
+    : pred?.claimed
+      ? "Claimed"
+      : pred
+        ? isLive ? "Live" : "Locked"
+        : isFinal || result
+          ? "Resolved"
+          : closingSoon
+            ? "Closing Soon"
+            : isLive
+              ? "Live"
+              : "Open";
 
   const ctaLabel = canClaim
     ? "Claim Ball IQ"
@@ -59,14 +75,30 @@ export function MatchCard({ match }: { match: Match }) {
         <span className="truncate font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
           {groupLabel(match.group)}
         </span>
-        {isLive ? (
-          <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-red-card/15 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-red-card">
-            <span className="live-dot h-1.5 w-1.5 rounded-full bg-red-card" />
+        {canClaim ? (
+          <span className="shrink-0 rounded-full bg-gold/15 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-gold">
+            Claim Available
+          </span>
+        ) : pred?.claimed ? (
+          <span className="shrink-0 rounded-full bg-primary/15 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
+            Claimed
+          </span>
+        ) : pred ? (
+          <span className="shrink-0 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
+            Locked
+          </span>
+        ) : isLive ? (
+          <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
+            <span className="live-dot h-1.5 w-1.5 rounded-full bg-primary" />
             Live · {match.minute}'
           </span>
         ) : isFinal ? (
           <span className="shrink-0 rounded-full border border-border px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
             Final
+          </span>
+        ) : closingSoon ? (
+          <span className="shrink-0 rounded-full border border-gold/40 bg-gold/10 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-gold">
+            Closing Soon
           </span>
         ) : (
           <span className="shrink-0 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-0.5 font-mono text-[10px] uppercase tracking-[0.22em] text-primary">
@@ -109,7 +141,7 @@ export function MatchCard({ match }: { match: Match }) {
       {/* Footer + CTA */}
       <div className="mt-auto flex items-center gap-2 border-t border-hairline p-3">
         <span className="truncate px-2 font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-          {match.venue.split(",")[0]}
+          {stateLabel}
         </span>
         <Link
           to="/matches/$matchId"

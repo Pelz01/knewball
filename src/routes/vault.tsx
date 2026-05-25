@@ -11,7 +11,7 @@ export const Route = createFileRoute("/vault")({
 
 function VaultPage() {
   const { wallet, predictions } = useStore();
-  const myPreds = wallet ? predictions.filter((p) => p.wallet === wallet) : [];
+  const myPreds = wallet ? predictions.filter((p) => p.wallet.toLowerCase() === wallet.toLowerCase()) : [];
   const earnedNames = Array.from(new Set(myPreds.flatMap((p) => p.badges || (p.badge ? [p.badge] : []))));
 
   // Map earned badge names to badge IDs
@@ -90,9 +90,7 @@ function BadgeCard({ badge, owned }: { badge: Badge; owned: boolean }) {
   return (
     <article className={`group relative overflow-hidden rounded-2xl border bg-surface p-6 transition hover:border-primary/40 ${owned ? "border-primary/30" : "border-border opacity-60"}`}>
       <div className="flex items-start justify-between">
-        <div className={`flex h-14 w-14 items-center justify-center rounded-xl border bg-background ${owned ? "border-primary/40 text-primary" : "border-border text-muted-foreground"}`}>
-          <BadgeIcon id={badge.id} className="h-6 w-6" />
-        </div>
+        <BadgeIcon id={badge.id} className="h-14 w-14" />
       </div>
       <h3 className="mt-5 font-display text-xl leading-tight tracking-tight">{badge.name}</h3>
       <p className="mt-2 text-sm text-muted-foreground">{badge.description}</p>

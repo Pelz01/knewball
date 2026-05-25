@@ -12,7 +12,7 @@ const STEPS = [
   {
     n: "03",
     title: "Lock on X Layer",
-    body: "Your call is written onchain before kickoff. Gas sponsored. Proof minted in ~1.2 seconds.",
+    body: "Your call is written onchain before kickoff. Once it is locked, it cannot be edited.",
   },
   {
     n: "04",
@@ -24,14 +24,14 @@ const STEPS = [
 export function HowItWorks() {
   return (
     <div>
-      <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between md:mb-10">
+      <div className="mb-12 flex flex-col gap-5 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between md:mb-16">
         <div>
           <h2 className="mt-2 font-display text-3xl tracking-tight sm:text-4xl md:text-5xl">
             Four steps. Before every kickoff.
           </h2>
         </div>
         <p className="max-w-md text-sm text-muted-foreground">
-          A streak game built on football culture, sharp calls, and verifiable history.
+          A form game built on football culture, sharp calls, and verifiable history.
         </p>
       </div>
 

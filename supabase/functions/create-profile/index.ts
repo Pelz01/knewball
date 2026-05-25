@@ -69,19 +69,25 @@ Deno.serve(async (request) => {
 
     const { data: existing, error: existingError } = await supabase
       .from("profiles")
-      .select("wallet_address")
+      .select("wallet_address,display_name,country,ball_iq_cached,created_at,updated_at")
       .eq("wallet_address", walletAddress)
       .maybeSingle();
     if (existingError) throw existingError;
+    if (existing) {
+      return jsonResponse({
+        status: "existing",
+        profile: existing,
+      });
+    }
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .upsert({
+      .insert({
         wallet_address: walletAddress,
         display_name: displayName,
         display_name_normalized: displayName.toLowerCase(),
         country,
-      }, { onConflict: "wallet_address" })
+      })
       .select("wallet_address,display_name,country,ball_iq_cached,created_at,updated_at")
       .single();
     if (profileError) {
@@ -91,7 +97,7 @@ Deno.serve(async (request) => {
     }
 
     return jsonResponse({
-      status: existing ? "updated" : "created",
+      status: "created",
       profile,
     });
   } catch (error) {

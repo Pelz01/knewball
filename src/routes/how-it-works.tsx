@@ -4,12 +4,15 @@ import { Footer } from "@/components/site/Footer";
 import { HowItWorks } from "@/components/site/HowItWorks";
 import { Badges } from "@/components/site/Badges";
 import { ProofCard } from "@/components/site/ProofCard";
+import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/how-it-works")({
   component: HowPage,
 });
 
 function HowPage() {
+  const { wallet } = useStore();
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Nav />
@@ -22,8 +25,8 @@ function HowPage() {
             Football reputation, onchain.
           </h1>
           <p className="mt-4 text-muted-foreground md:text-lg">
-            KnewBall is a streak game where you lock calls before kickoff.
-            Correct predictions earn Ball IQ, and wrong ones break your streak. Everything is written onchain and is fully verifiable on X Layer.
+            KnewBall is a football reputation game where you lock calls before kickoff.
+            Correct reads earn Ball IQ, and your last five claimed calls shape your Current Form. Everything is written onchain and is fully verifiable on X Layer.
           </p>
         </header>
 
@@ -35,12 +38,22 @@ function HowPage() {
           <h2 className="mx-auto max-w-3xl font-display text-4xl leading-[0.95] tracking-tight md:text-6xl">
             Ready to <span className="text-primary text-glow-green">lock your first call?</span>
           </h2>
-          <Link
-            to="/matches"
-            className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
-          >
-            Open the matchboard →
-          </Link>
+          {wallet ? (
+            <Link
+              to="/matches"
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110"
+            >
+              Launch app →
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("knewball:connect"))}
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground transition hover:brightness-110 cursor-pointer"
+            >
+              Connect wallet →
+            </button>
+          )}
         </section>
       </main>
       <Footer />
