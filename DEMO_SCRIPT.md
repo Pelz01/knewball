@@ -42,7 +42,7 @@ Football takes disappear after full-time. KnewBall locks them before kickoff, re
    - Say: "The contract prevents double claims."
 
 9. Show Matchday Verdict.
-   - Show correct reads, Ball IQ earned, badges, and current form.
+   - Show correct calls, Ball IQ earned, badges, and current form.
    - Say: "Good calls become public reputation. Bad calls stay public too."
 
 10. Open profile and leaderboard.

@@ -226,7 +226,7 @@ function ProofPage() {
                   <div className="text-right">
                     <div className="font-display text-3xl tracking-tight">+{p.pointsEarned ?? score.total}</div>
                     <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                      {score.correctCount} of 5 reads
+                      {score.correctCount} of 5 calls
                     </div>
                   </div>
                 </div>
@@ -338,13 +338,13 @@ function buildShareText({
 
   if (result && score) {
     const resultLine = `${match.home.name} ${result.homeScore}-${result.awayScore} ${match.away.name}`;
-    const pointsLine = prediction.claimed ? `+${prediction.pointsEarned ?? score.total} Ball IQ` : `${score.correctCount}/5 reads landed`;
+    const pointsLine = prediction.claimed ? `+${prediction.pointsEarned ?? score.total} Ball IQ` : `${score.correctCount}/5 calls landed`;
     return [
       `${fanName} knew ball before kickoff.`,
       "",
       resultLine,
       pointsLine,
-      `${score.correctCount}/5 reads landed`,
+      `${score.correctCount}/5 calls landed`,
       `verified on ${networkLabel}`,
       "",
       `proof: ${proofUrl}`,

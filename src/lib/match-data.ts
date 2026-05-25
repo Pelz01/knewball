@@ -394,7 +394,7 @@ export const BADGES: Badge[] = [
   { id: "perfect-slate",    name: "Perfect Slate",   description: "Every call landed. No edits. No hiding. You knew ball.",  icon: "trophy" },
   { id: "score-prophet",    name: "Score Prophet",   description: "User predicts exact final score",             icon: "sparkles" },
   { id: "first-blood",      name: "First Blood",     description: "User predicts first team to score",           icon: "zap" },
-  { id: "in-form",          name: "In Form",         description: "The recent reads are holding up.",            icon: "flame" },
+  { id: "in-form",          name: "In Form",         description: "The recent calls are holding up.",            icon: "flame" },
   { id: "upset-hunter",     name: "Upset Hunter",    description: "User correctly predicts underdog win",        icon: "shield" },
   { id: "chaos-merchant",   name: "Chaos Merchant",  description: "You saw the madness coming",                  icon: "shuffle" },
   { id: "country-captain",  name: "Country Captain", description: "User enters top 10 for their country",        icon: "crown" },

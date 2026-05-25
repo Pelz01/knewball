@@ -26,7 +26,7 @@ function HowPage() {
           </h1>
           <p className="mt-4 text-muted-foreground md:text-lg">
             KnewBall is a football reputation game where you lock calls before kickoff.
-            Correct reads earn Ball IQ, and your last five claimed calls shape your Current Form. Everything is written onchain and is fully verifiable on X Layer.
+            Correct calls earn Ball IQ, and your last five claimed calls shape your Current Form. Everything is written onchain and is fully verifiable on X Layer.
           </p>
         </header>
 

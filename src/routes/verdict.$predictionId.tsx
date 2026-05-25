@@ -143,7 +143,7 @@ function VerdictContent({
               <span className="font-display text-3xl tabular-nums">{result.homeScore}-{result.awayScore}</span>
             </div>
             <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-              {score.correctCount} of 5 reads landed
+              {score.correctCount} of 5 calls landed
             </p>
           </div>
 
