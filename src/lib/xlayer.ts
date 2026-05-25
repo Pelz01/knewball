@@ -5,7 +5,7 @@ export const XLAYER_TESTNET = {
   chainId: 1952,
   chainIdHex: "0x7a0",
   name: "X Layer testnet",
-  rpcUrls: ["https://testrpc.xlayer.tech/terigon", "https://xlayertestrpc.okx.com/terigon"],
+  rpcUrls: ["https://xlayertestrpc.okx.com/terigon", "https://testrpc.xlayer.tech/terigon"],
   explorerUrl: "https://www.okx.com/web3/explorer/xlayer-test",
   nativeCurrency: { name: "OKB", symbol: "OKB", decimals: 18 },
 } as const;
@@ -14,7 +14,7 @@ export const XLAYER_MAINNET = {
   chainId: 196,
   chainIdHex: "0xc4",
   name: "X Layer mainnet",
-  rpcUrls: ["https://rpc.xlayer.tech", "https://xlayerrpc.okx.com"],
+  rpcUrls: ["https://xlayerrpc.okx.com", "https://rpc.xlayer.tech"],
   explorerUrl: "https://www.okx.com/web3/explorer/xlayer",
   nativeCurrency: { name: "OKB", symbol: "OKB", decimals: 18 },
 } as const;

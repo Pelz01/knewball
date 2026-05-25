@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { verifyMessage, type Hex } from "npm:viem@2";
+import { verifyMessage, type Hex } from "npm:viem@2.50.4";
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
 import { isAddress } from "../_shared/xlayer.ts";
 

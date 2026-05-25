@@ -25,12 +25,12 @@ export function getXLayerConfig() {
     ? {
         id: 196,
         name: "X Layer",
-        rpcUrl: Deno.env.get("XLAYER_RPC_URL") ?? "https://rpc.xlayer.tech",
+        rpcUrl: Deno.env.get("XLAYER_RPC_URL") ?? "https://xlayerrpc.okx.com",
       }
     : {
         id: 1952,
         name: "X Layer testnet",
-        rpcUrl: Deno.env.get("XLAYER_RPC_URL") ?? "https://testrpc.xlayer.tech/terigon",
+        rpcUrl: Deno.env.get("XLAYER_RPC_URL") ?? "https://xlayertestrpc.okx.com/terigon",
       };
   const contractAddress = Deno.env.get("KNEWBALL_CONTRACT_ADDRESS");
   if (!isAddress(contractAddress)) throw new Error("Missing KNEWBALL_CONTRACT_ADDRESS secret.");

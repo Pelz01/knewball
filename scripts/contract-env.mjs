@@ -7,13 +7,13 @@ const NETWORKS = {
   testnet: {
     id: 1952,
     name: "X Layer testnet",
-    rpcUrl: "https://testrpc.xlayer.tech/terigon",
+    rpcUrl: "https://xlayertestrpc.okx.com/terigon",
     explorerUrl: "https://www.okx.com/web3/explorer/xlayer-test",
   },
   mainnet: {
     id: 196,
     name: "X Layer",
-    rpcUrl: "https://rpc.xlayer.tech",
+    rpcUrl: "https://xlayerrpc.okx.com",
     explorerUrl: "https://www.okx.com/web3/explorer/xlayer",
   },
 };
