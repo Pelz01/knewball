@@ -19,8 +19,12 @@ export const XLAYER_MAINNET = {
   nativeCurrency: { name: "OKB", symbol: "OKB", decimals: 18 },
 } as const;
 
+export const ACTIVE_XLAYER_NETWORK = String(import.meta.env.VITE_XLAYER_NETWORK ?? "testnet")
+  .trim()
+  .toLowerCase();
+
 export const ACTIVE_XLAYER =
-  import.meta.env.VITE_XLAYER_NETWORK === "mainnet" ? XLAYER_MAINNET : XLAYER_TESTNET;
+  ACTIVE_XLAYER_NETWORK === "mainnet" ? XLAYER_MAINNET : XLAYER_TESTNET;
 
 const KNEWBALL_CUP_ABI = parseAbi([
   "function claimBallIQ(uint256 matchId)",

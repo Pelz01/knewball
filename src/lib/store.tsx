@@ -84,10 +84,17 @@ interface State {
   results: Record<string, MatchResult>;
 }
 
+const STORAGE_NETWORK = String(import.meta.env.VITE_XLAYER_NETWORK ?? "testnet")
+  .trim()
+  .toLowerCase();
+const STORAGE_CONTRACT = String(import.meta.env.VITE_KNEWBALL_CONTRACT_ADDRESS ?? "local")
+  .trim()
+  .toLowerCase();
+
 const KEY = [
   "knewball.v3",
-  import.meta.env.VITE_XLAYER_NETWORK ?? "testnet",
-  import.meta.env.VITE_KNEWBALL_CONTRACT_ADDRESS ?? "local",
+  STORAGE_NETWORK || "testnet",
+  STORAGE_CONTRACT || "local",
 ].join(".");
 
 function load(): State {

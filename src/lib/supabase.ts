@@ -218,6 +218,15 @@ export async function fetchLeaderboardFans(): Promise<SupabaseLeaderboardFan[]> 
   const client = getSupabaseClient();
   if (!client) return [];
 
+  const network = activeSupabaseNetwork();
+  const contractAddress = activeSupabaseContractAddress();
+  let predictionsQuery = client
+    .from("predictions")
+    .select("wallet_address,claimed,correct_count,points_earned,claimed_at,created_at")
+    .eq("claimed", true)
+    .eq("network", network);
+  if (contractAddress) predictionsQuery = predictionsQuery.eq("contract_address", contractAddress);
+
   const [
     { data: profilesData, error: profilesError },
     { data: predictionsData, error: predictionsError },
@@ -225,12 +234,7 @@ export async function fetchLeaderboardFans(): Promise<SupabaseLeaderboardFan[]> 
     client
       .from("profiles")
       .select("wallet_address,display_name,country,ball_iq_cached"),
-    client
-      .from("predictions")
-      .select("wallet_address,claimed,correct_count,points_earned,claimed_at,created_at")
-      .eq("claimed", true)
-      .eq("network", activeSupabaseNetwork())
-      .eq("contract_address", activeSupabaseContractAddress() ?? ""),
+    predictionsQuery,
   ]);
   if (profilesError) throw profilesError;
   if (predictionsError) throw predictionsError;
@@ -276,11 +280,13 @@ export async function fetchLeaderboardFans(): Promise<SupabaseLeaderboardFan[]> 
 }
 
 function activeSupabaseNetwork(): "testnet" | "mainnet" {
-  return import.meta.env.VITE_XLAYER_NETWORK === "mainnet" ? "mainnet" : "testnet";
+  return String(import.meta.env.VITE_XLAYER_NETWORK ?? "testnet").trim().toLowerCase() === "mainnet"
+    ? "mainnet"
+    : "testnet";
 }
 
 function activeSupabaseContractAddress() {
-  const address = import.meta.env.VITE_KNEWBALL_CONTRACT_ADDRESS;
+  const address = String(import.meta.env.VITE_KNEWBALL_CONTRACT_ADDRESS ?? "").trim();
   return typeof address === "string" && /^0x[a-fA-F0-9]{40}$/.test(address) ? address.toLowerCase() : null;
 }
 
