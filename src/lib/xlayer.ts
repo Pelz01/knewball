@@ -349,8 +349,8 @@ async function findMatchResolvedHash(matchId: bigint) {
 }
 
 function knewBallCupAddress(): Address {
-  const address = import.meta.env.VITE_KNEWBALL_CONTRACT_ADDRESS;
-  if (typeof address !== "string" || !/^0x[a-fA-F0-9]{40}$/.test(address)) {
+  const address = String(import.meta.env.VITE_KNEWBALL_CONTRACT_ADDRESS ?? "").trim();
+  if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
     throw new Error(`Missing ${ACTIVE_XLAYER.name} KnewBallCup contract address.`);
   }
   return address as Address;

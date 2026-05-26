@@ -1,2 +1,14 @@
 [functions.auto-resolve-results]
 verify_jwt = false
+
+[functions.create-profile]
+verify_jwt = false
+
+[functions.sync-prediction]
+verify_jwt = false
+
+[functions.sync-result]
+verify_jwt = false
+
+[functions.sync-claim]
+verify_jwt = false

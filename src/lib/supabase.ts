@@ -124,7 +124,7 @@ export type SupabaseLeaderboardFan = {
 };
 
 export function hasSupabaseConfig() {
-  return Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY);
+  return Boolean(activeSupabaseUrl() && activeSupabaseAnonKey());
 }
 
 export function getSupabaseClient() {
@@ -132,8 +132,8 @@ export function getSupabaseClient() {
 
   if (!supabaseClient) {
     supabaseClient = createClient<KnewBallDatabase>(
-      import.meta.env.VITE_SUPABASE_URL,
-      import.meta.env.VITE_SUPABASE_ANON_KEY,
+      activeSupabaseUrl(),
+      activeSupabaseAnonKey(),
     );
   }
 
@@ -283,6 +283,14 @@ function activeSupabaseNetwork(): "testnet" | "mainnet" {
   return String(import.meta.env.VITE_XLAYER_NETWORK ?? "testnet").trim().toLowerCase() === "mainnet"
     ? "mainnet"
     : "testnet";
+}
+
+function activeSupabaseUrl() {
+  return String(import.meta.env.VITE_SUPABASE_URL ?? "").trim();
+}
+
+function activeSupabaseAnonKey() {
+  return String(import.meta.env.VITE_SUPABASE_ANON_KEY ?? "").trim();
 }
 
 function activeSupabaseContractAddress() {
