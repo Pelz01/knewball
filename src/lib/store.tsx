@@ -84,7 +84,11 @@ interface State {
   results: Record<string, MatchResult>;
 }
 
-const KEY = "knewball.v2";
+const KEY = [
+  "knewball.v3",
+  import.meta.env.VITE_XLAYER_NETWORK ?? "testnet",
+  import.meta.env.VITE_KNEWBALL_CONTRACT_ADDRESS ?? "local",
+].join(".");
 
 function load(): State {
   if (typeof window === "undefined") return { wallet: null, chainId: null, profile: null, profileHydrating: false, drafts: {}, predictions: [], results: {} };

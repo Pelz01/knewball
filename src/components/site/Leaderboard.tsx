@@ -63,7 +63,7 @@ export function Leaderboard() {
       claimedCalls: fan.claimedCalls,
     }));
 
-    if (wallet && profile && profileCountry) {
+    if (import.meta.env.DEV && wallet && profile && profileCountry) {
       const walletKey = wallet.toLowerCase();
       const existingIndex = realRows.findIndex((fan) => fan.key === walletKey);
       const connectedRow = {
@@ -86,6 +86,8 @@ export function Leaderboard() {
         .sort((a, b) => b.ballIq - a.ballIq)
         .map((fan, index) => ({ ...fan, rank: index + 1 }));
     }
+
+    if (!import.meta.env.DEV) return [];
 
     return TOP_FANS.map((fan) => ({
       rank: fan.rank,
@@ -134,7 +136,7 @@ export function Leaderboard() {
       });
     }
 
-    if (rowsByCountry.size === 0) {
+    if (rowsByCountry.size === 0 && import.meta.env.DEV) {
       for (const country of COUNTRY_RANKS) {
         rowsByCountry.set(country.country.code, {
           rank: country.rank,
@@ -183,7 +185,7 @@ export function Leaderboard() {
         </div>
 
         <ul className="divide-y divide-hairline">
-          {dynamicFans.map((f) => (
+          {dynamicFans.length > 0 ? dynamicFans.map((f) => (
             <li
               key={f.key}
               className="grid grid-cols-[36px_1fr_auto_auto_auto] items-center gap-x-4 px-6 py-4.5 transition hover:bg-surface-elevated sm:grid-cols-[40px_1fr_auto_auto_auto] sm:gap-x-5 sm:px-8 sm:py-5"
@@ -209,7 +211,9 @@ export function Leaderboard() {
                 {f.ballIq.toLocaleString()}
               </span>
             </li>
-          ))}
+          )) : (
+            <EmptyLeaderboard message="Mainnet leaderboard is building. The first claimed calls will appear here." />
+          )}
         </ul>
       </div>
       ) : (
@@ -221,7 +225,7 @@ export function Leaderboard() {
           </p>
         </header>
         <ul className="divide-y divide-hairline">
-          {countryRows.map((c) => {
+          {countryRows.length > 0 ? countryRows.map((c) => {
             const belowThreshold = c.fans < 3;
             const pct = belowThreshold ? 8 : Math.round((c.avgIq / 6500) * 100);
             return (
@@ -252,11 +256,24 @@ export function Leaderboard() {
                 </div>
               </li>
             );
-          })}
+          }) : (
+            <EmptyLeaderboard message="Country Form will unlock once mainnet fans start claiming Ball IQ." />
+          )}
         </ul>
       </div>
       )}
     </div>
+  );
+}
+
+function EmptyLeaderboard({ message }: { message: string }) {
+  return (
+    <li className="px-6 py-12 text-center sm:px-8">
+      <p className="font-display text-2xl tracking-tight">Season 1 is live</p>
+      <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+        {message}
+      </p>
+    </li>
   );
 }
 

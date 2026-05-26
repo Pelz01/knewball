@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { WORLD_CUP_TEAMS } from "@/lib/match-data";
 import { useStore, shortAddress } from "@/lib/store";
+import { xLayerNetworkLabel } from "@/lib/xlayer";
 
 /* Modal that walks the user through:
  *  1. Connect wallet
@@ -85,7 +86,7 @@ export function OnboardingModal({
               </p>
             )}
             <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-              OKX Wallet · X Layer testnet · OKB gas
+              OKX Wallet · {xLayerNetworkLabel()} · OKB gas
             </p>
           </div>
           )}

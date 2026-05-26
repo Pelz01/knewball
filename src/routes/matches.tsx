@@ -25,8 +25,7 @@ function MatchesPage() {
   const upcoming = MATCHES.filter((m) => m.status === "upcoming");
   const finals = MATCHES.filter((m) => m.status === "final");
 
-  const callsLocked = MATCHES.reduce((s, m) => s + m.callsLocked, 0);
-  const ballIqClaimed = predictions.reduce((s, p) => s + (p.pointsEarned ?? 0), 0) + 42_900;
+  const openMatchesCount = live.length + upcoming.length;
 
   if (wallet && !profile && profileHydrating) {
     return (
@@ -96,10 +95,10 @@ function MatchesPage() {
               </div>
             </div>
             <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-border bg-border">
-              <Stat label="Calls locked" value={callsLocked.toLocaleString()} />
-              <Stat label="Ball IQ claimed" value={ballIqClaimed.toLocaleString()} compact />
-              <Stat label="Countries ranked" value="48" accent />
-              <Stat label="Open matches" value={(live.length + upcoming.length).toString()} compact />
+              <Stat label="Season 1" value="Live" accent />
+              <Stat label="Network" value="X Layer" compact />
+              <Stat label="Fixtures seeded" value={MATCHES.filter((match) => Number(match.id) < 1000).length.toString()} />
+              <Stat label="Open matches" value={openMatchesCount.toString()} compact />
             </dl>
           </section>
 
@@ -239,10 +238,10 @@ function MatchesPage() {
             </>
           ) : (
             <>
-              <Stat label="Calls locked" value={callsLocked.toLocaleString()} />
-              <Stat label="Ball IQ claimed" value={ballIqClaimed.toLocaleString()} />
-              <Stat label="Active fans" value="58,210" />
-              <Stat label="Countries ranked" value="48" accent />
+              <Stat label="Season 1" value="Live" accent />
+              <Stat label="Network" value="X Layer" compact />
+              <Stat label="Fixtures seeded" value={MATCHES.filter((match) => Number(match.id) < 1000).length.toString()} />
+              <Stat label="Open matches" value={openMatchesCount.toString()} compact />
             </>
           )}
         </dl>

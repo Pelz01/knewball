@@ -4,10 +4,10 @@ import heroImg from "@/assets/hero-stadium.jpg";
 export function Hero() {
   const heroStats = [
     { label: "Season 1", value: "Live", accent: "green" as const },
-    { label: "Calls locked", value: "412,884" },
-    { label: "Live fans", value: "58,210" },
-    { label: "Countries", value: "48" },
-    { label: "Avg. proof time", value: "1.2s", accent: "gold" as const },
+    { label: "Network", value: "X Layer" },
+    { label: "Fixtures seeded", value: "24" },
+    { label: "Proof layer", value: "Mainnet", accent: "gold" as const },
+    { label: "Fan status", value: "Ball IQ" },
   ];
   const statLoop = [...heroStats, ...heroStats];
 

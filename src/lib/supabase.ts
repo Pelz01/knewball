@@ -179,11 +179,15 @@ export async function fetchWalletPredictionMemory(walletAddress: string) {
   if (!client) return [];
 
   const wallet = walletAddress.toLowerCase();
-  const { data: predictionsData, error: predictionsError } = await client
+  let query = client
     .from("predictions")
     .select("*")
     .eq("wallet_address", wallet)
-    .order("locked_at", { ascending: false });
+    .eq("network", activeSupabaseNetwork());
+  const contractAddress = activeSupabaseContractAddress();
+  if (contractAddress) query = query.eq("contract_address", contractAddress);
+
+  const { data: predictionsData, error: predictionsError } = await query.order("locked_at", { ascending: false });
   if (predictionsError) throw predictionsError;
 
   const predictions = (predictionsData ?? []) as SupabasePredictionRow[];
@@ -194,11 +198,15 @@ export async function fetchPredictionMemoryById(predictionId: string) {
   const client = getSupabaseClient();
   if (!client) return null;
 
-  const { data, error } = await client
+  let query = client
     .from("predictions")
     .select("*")
     .eq("id", predictionId)
-    .maybeSingle();
+    .eq("network", activeSupabaseNetwork());
+  const contractAddress = activeSupabaseContractAddress();
+  if (contractAddress) query = query.eq("contract_address", contractAddress);
+
+  const { data, error } = await query.maybeSingle();
   if (error) throw error;
   if (!data) return null;
 
@@ -219,14 +227,16 @@ export async function fetchLeaderboardFans(): Promise<SupabaseLeaderboardFan[]> 
       .select("wallet_address,display_name,country,ball_iq_cached"),
     client
       .from("predictions")
-      .select("wallet_address,claimed,correct_count,claimed_at,created_at")
-      .eq("claimed", true),
+      .select("wallet_address,claimed,correct_count,points_earned,claimed_at,created_at")
+      .eq("claimed", true)
+      .eq("network", activeSupabaseNetwork())
+      .eq("contract_address", activeSupabaseContractAddress() ?? ""),
   ]);
   if (profilesError) throw profilesError;
   if (predictionsError) throw predictionsError;
 
   type ProfileRow = Pick<KnewBallDatabase["public"]["Tables"]["profiles"]["Row"], "wallet_address" | "display_name" | "country" | "ball_iq_cached">;
-  type ClaimedPredictionRow = Pick<KnewBallDatabase["public"]["Tables"]["predictions"]["Row"], "wallet_address" | "claimed" | "correct_count" | "claimed_at" | "created_at">;
+  type ClaimedPredictionRow = Pick<KnewBallDatabase["public"]["Tables"]["predictions"]["Row"], "wallet_address" | "claimed" | "correct_count" | "points_earned" | "claimed_at" | "created_at">;
 
   const claimedByWallet = new Map<string, ClaimedPredictionRow[]>();
   for (const prediction of (predictionsData ?? []) as ClaimedPredictionRow[]) {
@@ -249,12 +259,13 @@ export async function fetchLeaderboardFans(): Promise<SupabaseLeaderboardFan[]> 
       const formPercentage = recent.length >= 5
         ? Math.round((recent.reduce((sum, prediction) => sum + prediction.correct_count, 0) / 25) * 100)
         : null;
+      const networkBallIq = claimed.reduce((sum, prediction) => sum + prediction.points_earned, 0);
 
       return {
         wallet,
         displayName: profile.display_name,
         country: profile.country,
-        ballIq: profile.ball_iq_cached,
+        ballIq: networkBallIq,
         claimedCalls: claimed.length,
         formPercentage,
         formLabel: formPercentage === null ? `Building Form: ${recent.length}/5` : formLabelForPercentage(formPercentage),
@@ -262,6 +273,15 @@ export async function fetchLeaderboardFans(): Promise<SupabaseLeaderboardFan[]> 
     })
     .filter((fan) => fan.ballIq > 0 || fan.claimedCalls > 0)
     .sort((a, b) => b.ballIq - a.ballIq);
+}
+
+function activeSupabaseNetwork(): "testnet" | "mainnet" {
+  return import.meta.env.VITE_XLAYER_NETWORK === "mainnet" ? "mainnet" : "testnet";
+}
+
+function activeSupabaseContractAddress() {
+  const address = import.meta.env.VITE_KNEWBALL_CONTRACT_ADDRESS;
+  return typeof address === "string" && /^0x[a-fA-F0-9]{40}$/.test(address) ? address.toLowerCase() : null;
 }
 
 async function fetchPredictionMemoryForRows(predictions: SupabasePredictionRow[]) {
