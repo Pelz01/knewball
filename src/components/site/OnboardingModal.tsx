@@ -121,7 +121,7 @@ export function OnboardingModal({
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   maxLength={20}
-                  placeholder="e.g. goat_caller"
+                  placeholder="e.g. ballcaller"
                   className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary"
                 />
               </Field>
